@@ -9,19 +9,23 @@ contract Messages {
     uint timestamp;
     uint childCount; // Filled when viewing from msgChildren[].length
     uint versionCount; // Filled when viewing from msgChildren[].length
+    uint upvotes;
+    uint downvotes;
     bytes data;
   }
   mapping(address => Msg[]) public msgs;
   mapping(address => address[]) public msgChildren;
   mapping(address => address[]) public msgsByAuthor;
+  mapping(address => mapping(address => uint)) public votes;
 
   event NewMsg(address indexed key);
   event MsgEdited(address indexed key);
+  event Vote(address indexed key, uint upvotes, uint downvotes);
 
   function post(address parent, bytes memory data) external {
     address key = address(uint160(uint256(keccak256(abi.encode(msg.sender, childCount(parent), parent)))));
 
-    msgs[key].push(Msg(msg.sender, parent, key, block.timestamp, 0, 0, data));
+    msgs[key].push(Msg(msg.sender, parent, key, block.timestamp, 0, 0, 0, 0, data));
     msgChildren[parent].push(key);
     msgsByAuthor[msg.sender].push(key);
     emit NewMsg(key);
@@ -29,8 +33,26 @@ contract Messages {
 
   function edit(address key, bytes memory data) external {
     require(msg.sender == msgs[key][0].author);
-    msgs[key].push(Msg(msg.sender, msgs[key][0].parent, key, block.timestamp, 0, 0, data));
+    msgs[key].push(Msg(msg.sender, msgs[key][0].parent, key, block.timestamp, 0, 0, 0, 0, data));
     emit MsgEdited(key);
+  }
+
+  function vote(address key, bool upvote) external {
+    require(msgs[key][0].timestamp > 0);
+    uint curVote = votes[msg.sender][key];
+    if(curVote == 1) {
+      msgs[key][0].upvotes--;
+    } else if(curVote == 2) {
+      msgs[key][0].downvotes--;
+    }
+    if(upvote) {
+      msgs[key][0].upvotes++;
+      votes[msg.sender][key] = 1;
+    } else {
+      msgs[key][0].downvotes++;
+      votes[msg.sender][key] = 2;
+    }
+    emit Vote(key, msgs[key][0].upvotes, msgs[key][0].downvotes);
   }
 
   function versionCount(address key) external view returns(uint) {
@@ -42,6 +64,7 @@ contract Messages {
   }
 
   function fetchLatest(address key) external view returns(Msg memory) {
+    require(msgs[key].length > 0);
     Msg memory out = msgs[key][msgs[key].length - 1];
     out.childCount = msgChildren[key].length;
     out.versionCount = msgs[key].length;

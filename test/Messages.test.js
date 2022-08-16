@@ -38,3 +38,27 @@ exports.postAndListMessages = async function({
   assert.strictEqual(childLatest.versionCount, '2');
   
 };
+
+exports.voting = async function({
+  web3, accounts, deployContract, loadContract, throws, BURN_ACCOUNT,
+}) {
+  const msgs = await deployContract(accounts[0], 'Messages');
+
+  const retPost = await msgs.sendFrom(accounts[0]).post(BURN_ACCOUNT, '0xbeef');
+  const msg0 = retPost.events.NewMsg.returnValues.key;
+  await msgs.sendFrom(accounts[0]).vote(msg0, true);
+  let childLatest = await msgs.methods.fetchLatest(msg0).call();
+  assert.strictEqual(childLatest.upvotes, '1');
+  assert.strictEqual(childLatest.downvotes, '0');
+
+  await msgs.sendFrom(accounts[0]).vote(msg0, false);
+  childLatest = await msgs.methods.fetchLatest(msg0).call();
+  assert.strictEqual(childLatest.upvotes, '0');
+  assert.strictEqual(childLatest.downvotes, '1');
+
+  await msgs.sendFrom(accounts[1]).vote(msg0, false);
+  await msgs.sendFrom(accounts[2]).vote(msg0, true);
+  childLatest = await msgs.methods.fetchLatest(msg0).call();
+  assert.strictEqual(childLatest.upvotes, '1');
+  assert.strictEqual(childLatest.downvotes, '2');
+}
