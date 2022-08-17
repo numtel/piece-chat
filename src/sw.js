@@ -8,7 +8,7 @@ const hostable = [
   'username.html',
   'tvision.css',
   'wallet.js',
-  'utils.js',
+  'vote.js',
   'sw.js',
   'config.json',
   'deps/coinbase.min.js',
@@ -49,9 +49,33 @@ async function loader(request) {
   });
 }
 
+function calcScore(upvotes, downvotes, age) {
+  if(upvotes === 0 && downvotes === 0) return 0;
+  let positive = upvotes, negative = downvotes;
+  if(downvotes > upvotes) {
+    // Equation doesn't work with <0
+    positive = downvotes;
+    negative = upvotes;
+  }
+  // From http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
+  let score = ((positive + 1.9208) / (positive + negative) -
+     1.96 * Math.sqrt((positive * negative) / (positive + negative) + 0.9604) /
+        (positive + negative)) / (1 + 3.8416 / (positive + negative))
+
+  if(downvotes > upvotes) {
+    score *= -1 * age;
+  } else {
+    score /= age;
+  }
+  return score;
+}
+
 function formatMsg(msgRaw) {
   if(!msgRaw) return msgRaw;
   const gunzip = new Zlib.Gunzip(Uint8Array.from(msgRaw.data.slice(2).match(/.{1,2}/g).map((byte) => parseInt(byte, 16))));
+  const upvotes = Number(msgRaw.upvotes);
+  const downvotes = Number(msgRaw.downvotes);
+  const age = Math.floor(Date.now() / 1000) - msgRaw.timestamp;
   return {
     author: msgRaw.author,
     parent: msgRaw.parent,
@@ -59,8 +83,17 @@ function formatMsg(msgRaw) {
     timestamp: new Date(msgRaw.timestamp * 1000),
     childCount: Number(msgRaw.childCount),
     versionCount: Number(msgRaw.versionCount),
+    upvotes,
+    downvotes,
+    score: calcScore(upvotes, downvotes, age),
+    age,
     data: new TextDecoder().decode(gunzip.decompress()),
   };
+}
+
+function sortByScore(a, b) {
+  return a.score > b.score ? -1 :
+    b.score > a.score ? 1 : 0;
 }
 
 async function messagesPage(match, config) {
@@ -68,21 +101,21 @@ async function messagesPage(match, config) {
   const web3 = new Web3(config.rpc);
   const msgsABI = await (await fetch('/Messages.abi')).json();
   const msgs = new web3.eth.Contract(msgsABI, config.contracts.Messages.address);
-  let rootResult = null, result = [null];
+  let parent = null, result = [];
 
   try {
-    result = [await msgs.methods.fetchLatest(root).call()];
+    parent = formatMsg(await msgs.methods.fetchLatest(root).call());
   } catch(error) {}
   try {
+    // TODO load more than 10!!!
     result = result.concat(await msgs.methods.fetchChildren(root, 0, 10).call());
   } catch(error) {}
 
-  const doc = result.map(formatMsg);
-  if(doc) {
-    return new Response(renderMsgs(doc, root), {
-      headers: { 'Content-Type': 'text/html' }
-    });
-  }
+  // TODO support other sort methods
+  const doc = result.map(formatMsg).sort(sortByScore);
+  return new Response(renderMsgs(parent, doc, root), {
+    headers: { 'Content-Type': 'text/html' }
+  });
 }
 
 async function homePage(match, config) {
@@ -156,20 +189,26 @@ async function replyPage(match, config) {
 }
 
 
-function renderMsgs(data, root) {
+function renderMsgs(parent, data, root) {
   return `
-    ${data[0] ? `
+    <script src="/deps/web3.min.js"></script>
+    <script src="/deps/coinbase.min.js"></script>
+    <script src="/deps/web3modal.min.js"></script>
+    <script src="/deps/gzip.min.js"></script>
+    <script src="/wallet.js"></script>
+    <script src="/vote.js"></script>
+    ${parent ? `
       <div class="root">
-        ${renderMsg(data[0])}
+        ${renderMsg(parent)}
       </div>
     ` : `
       <div class="root empty">
         <a href="/${root}/reply">Post reply...</a>
       </div>
     `}
-    ${data.length > 1 ? `
+    ${data.length > 0 ? `
       <ul class="children">
-        ${data.slice(1).map(child => renderMsg(child)).join('')}
+        ${data.map(child => renderMsg(child)).join('')}
       </ul>
     ` : ''}
   `;
@@ -187,6 +226,11 @@ function renderMsg(msg) {
         <dd>${msg.timestamp.toLocaleString()} ${msg.versionCount > 1 ? '(Edited)' : ''}</dd>
         <dt>Text</dt>
         <dd>${msg.data}</dd>
+        <dt>Score</dt>
+        <dd>${msg.upvotes - msg.downvotes}, ${msg.age}, ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes}
+          <button onclick="vote('${msg.key}', true)">Upvote</button>
+          <button onclick="vote('${msg.key}', false)">Downvote</button>
+        </dd>
       </dl>
       <a href="/${msg.key}">View ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a>
       <a href="/${msg.key}/reply">Post reply...</a>
