@@ -1,0 +1,21 @@
+body {max-width:720px;margin:30px auto; background:cyan; font-family:sans-serif;}
+
+.root {}
+.root.empty {}
+.root.empty a {}
+ul.children {}
+.msg {background:#0001;margin:20px 0; padding:40px;}
+.msg dl {}
+.msg dt {}
+.msg dd {}
+.msg a {}
+
+.score {display:flex; flex-direction:column; float:left; margin:0 10px 10px 0;}
+.score .up {}
+.score .up:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid black;top:-10px;left:-6px;}
+.score .down {}
+.score .down:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid black;top:8px;left:-6px;}
+.score button {font-size:0;cursor:pointer;width:5px;height:8px;background:black;border:0; position:relative;}
+
+form {}
+textarea {width: 100%; height: 100px;margin-bottom:15px;}

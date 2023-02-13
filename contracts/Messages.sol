@@ -71,6 +71,7 @@ contract Messages {
     return out;
   }
 
+  // TODO support passing viewing address for self voting status for frontend
   function fetchChildren(address key, uint startIndex, uint fetchCount) external view returns(Msg[] memory) {
     require(startIndex < msgChildren[key].length);
     if(startIndex + fetchCount >= msgChildren[key].length) {

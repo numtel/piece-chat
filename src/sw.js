@@ -6,7 +6,7 @@ const Web3 = window.Web3;
 const hostable = [
   'publish.html',
   'username.html',
-  'tvision.css',
+  'style.css',
   'wallet.js',
   'vote.js',
   'sw.js',
@@ -136,7 +136,7 @@ async function replyPage(match, config) {
   return new Response(`
     ${result ? `
       <div class="root">
-        ${renderMsg(result)}
+        ${renderMsg(result, false, true)}
       </div>
     ` : ''}
     <form>
@@ -149,6 +149,7 @@ async function replyPage(match, config) {
     <script src="/deps/web3modal.min.js"></script>
     <script src="/deps/gzip.min.js"></script>
     <script src="/wallet.js"></script>
+    <link rel="stylesheet" href="/style.css">
     <script>
       async function submit(event) {
         event.preventDefault();
@@ -197,43 +198,42 @@ function renderMsgs(parent, data, root) {
     <script src="/deps/gzip.min.js"></script>
     <script src="/wallet.js"></script>
     <script src="/vote.js"></script>
+    <link rel="stylesheet" href="/style.css">
     ${parent ? `
       <div class="root">
         ${renderMsg(parent)}
       </div>
     ` : `
       <div class="root empty">
-        <a href="/${root}/reply">Post reply...</a>
+        <a href="/${root}/reply">Post root message...</a>
       </div>
     `}
     ${data.length > 0 ? `
       <ul class="children">
-        ${data.map(child => renderMsg(child)).join('')}
+        ${data.map(child => renderMsg(child, true)).join('')}
       </ul>
     ` : ''}
   `;
 }
 
-function renderMsg(msg) {
+function renderMsg(msg, displayAsChild, displayAsReply) {
   return `
     <div class="msg">
-      <dl>
-        <dt>Author</dt>
-        <dd><a href="/account/${msg.author}">${msg.author}</a></dd>
-        <dt>Parent</dt>
-        <dd><a href="/${msg.parent}">${msg.parent}</a></dd>
-        <dt>Timestamp</dt>
-        <dd>${msg.timestamp.toLocaleString()} ${msg.versionCount > 1 ? '(Edited)' : ''}</dd>
-        <dt>Text</dt>
-        <dd>${msg.data}</dd>
-        <dt>Score</dt>
-        <dd>${msg.upvotes - msg.downvotes}, ${msg.age}, ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes}
-          <button onclick="vote('${msg.key}', true)">Upvote</button>
-          <button onclick="vote('${msg.key}', false)">Downvote</button>
-        </dd>
-      </dl>
+      <div class="score">
+        <button class="up" onclick="vote('${msg.key}', true)">Upvote</button>
+        <span>${msg.upvotes - msg.downvotes}<!-- Age: ${msg.age}, Score: ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes} --></span>
+        <button class="down" onclick="vote('${msg.key}', false)">Downvote</button>
+      </div>
+      <div class="metadata">
+        <span class="author">Posted by <a href="/account/${msg.author}">${msg.author}</a></span>
+        <span class="time">at <time>${msg.timestamp.toLocaleString()} ${msg.versionCount > 1 ? '(Edited)' : ''}</time></span>
+      </div>
+      <div class="text">
+        ${msg.data}
+      </div>
       <a href="/${msg.key}">View ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a>
-      <a href="/${msg.key}/reply">Post reply...</a>
+      ${displayAsChild ? '' : `<a href="/${msg.parent}">View Parent...</a>`}
+      ${displayAsReply ? '' : `<a href="/${msg.key}/reply">Post reply...</a>`}
     </div>
   `;
 }
