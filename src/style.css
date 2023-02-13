@@ -1,9 +1,17 @@
 body {max-width:720px;margin:30px auto; background:cyan; font-family:sans-serif;}
 
+a.settings { display:block; float:right; font-size:0; width:32px;height:32px; background:url(/img/settings_gear-4.png) -8px -8px; }
+.root.empty { float:right;}
+.root.empty a {display:block; font-size:0; width:32px;height:32px; background:url(/img/address_book_pad.png);}
+
+h1 { font-size:2rem; line-height:2.2rem;overflow:hidden; height:2.2rem; position:relative; padding-bottom:0.2rem; }
+h1>a {text-decoration:none; color: black; }
+h1>a>span { position:absolute; animation-fill-mode:forwards; animation-duration:3s; animation-name:slidein;}
+@keyframes slidein {from{top:0} 20%{top:0} 45% {top:-2.2rem} 55% {top:-2.2rem} to {top:-4.4rem}}
+h1 span.optimism { font-size: 1rem; color: darkorchid;}
+
 .root {}
-.root.empty {}
-.root.empty a {}
-ul.children {}
+ul.children {clear:both;padding-left:20px;list-style:none;}
 .msg {background:#0001;margin:20px 0; padding:40px;}
 .msg dl {}
 .msg dt {}

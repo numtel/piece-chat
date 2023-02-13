@@ -7,6 +7,8 @@ const hostable = [
   'publish.html',
   'username.html',
   'style.css',
+  'img/settings_gear-4.png',
+  'img/address_book_pad.png',
   'wallet.js',
   'vote.js',
   'sw.js',
@@ -149,6 +151,7 @@ async function replyPage(match, config) {
     <script src="/deps/web3modal.min.js"></script>
     <script src="/deps/gzip.min.js"></script>
     <script src="/wallet.js"></script>
+    <script src="/vote.js"></script>
     <link rel="stylesheet" href="/style.css">
     <script>
       async function submit(event) {
@@ -199,15 +202,18 @@ function renderMsgs(parent, data, root) {
     <script src="/wallet.js"></script>
     <script src="/vote.js"></script>
     <link rel="stylesheet" href="/style.css">
+    <a href="/settings.html" class="settings" title="Settings...">Settings...</a>
+    ${!parent ? `
+      <div class="root empty">
+        <a href="/${root}/reply" title="Post root message...">Post root message...</a>
+      </div>
+    ` : ''}
+    <h1><a href="/">glasshalf<span>&nbsp;<strike>empty</strike><br>&nbsp;<strike>full</strike></br><em>.chat</em> <span class="optimism">runs on Optimism</span></span></a></h1>
     ${parent ? `
       <div class="root">
         ${renderMsg(parent)}
       </div>
-    ` : `
-      <div class="root empty">
-        <a href="/${root}/reply">Post root message...</a>
-      </div>
-    `}
+    ` : ''}
     ${data.length > 0 ? `
       <ul class="children">
         ${data.map(child => renderMsg(child, true)).join('')}
@@ -217,6 +223,7 @@ function renderMsgs(parent, data, root) {
 }
 
 function renderMsg(msg, displayAsChild, displayAsReply) {
+  // TODO escape html
   return `
     <div class="msg">
       <div class="score">
@@ -229,10 +236,9 @@ function renderMsg(msg, displayAsChild, displayAsReply) {
         <span class="time">at <time>${msg.timestamp.toLocaleString()} ${msg.versionCount > 1 ? '(Edited)' : ''}</time></span>
       </div>
       <div class="text">
-        ${msg.data}
+        ${msg.data.replace(/(?:\r\n|\r|\n)/g, '<br>')}
       </div>
-      <a href="/${msg.key}">View ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a>
-      ${displayAsChild ? '' : `<a href="/${msg.parent}">View Parent...</a>`}
+      ${displayAsChild ? `<a href="/${msg.key}">View ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a>` : `<a href="/${msg.parent}">View Parent...</a>`}
       ${displayAsReply ? '' : `<a href="/${msg.key}/reply">Post reply...</a>`}
     </div>
   `;
