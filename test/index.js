@@ -53,7 +53,7 @@ async function deployContract(account, contractName, ...args) {
     `${BUILD_DIR}${contractName}.abi`, { encoding: 'utf8' }));
   const contract = new web3.eth.Contract(abi);
   const method = contract.deploy({ data: bytecode, arguments: args });
-  const gas = await method.estimateGas();
+  const gas = Math.round(await method.estimateGas() * 1.2);
   const deployed = await method.send({ from: account, gas });
 
   deployed.sendFrom = (address) => Object.keys(deployed.methods)
