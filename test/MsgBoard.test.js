@@ -11,6 +11,7 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
 
   const post0 = await msgBoard.methods.fetchLatest(postAddr).call();
   assert.strictEqual(Number(post0.upvotes), 1);
+  assert.strictEqual(post0.data, '0xbeef');
   
   assert.strictEqual(await throws(async () => await
     msgBoard.sendFrom(accounts[1]).vote(postAddr, 1)), true);
@@ -19,8 +20,12 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
   assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), 1);
   assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[0]).call()), INITIAL_MINT - 1);
 
+  await msgBoard.sendFrom(accounts[1]).edit(postAddr, '0xdeadbeef');
+
   const post1 = await msgBoard.methods.fetchLatest(postAddr).call();
   assert.strictEqual(Number(post1.upvotes), 2);
+  assert.strictEqual(Number(post1.versionCount), 2);
+  assert.strictEqual(post1.data, '0xdeadbeef');
 
   await msgBoard.sendFrom(accounts[1]).transfer(accounts[2], 1);
   await msgBoard.sendFrom(accounts[2]).vote(postAddr, 1);
@@ -29,9 +34,24 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
   assert.strictEqual(Number(post2.upvotes), 3);
   assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), 1);
 
-  await msgBoard.sendFrom(accounts[0]).arbitraryTransfer(accounts[1], accounts[2], 4);
+  // Balances can go negative
+  await msgBoard.sendFrom(accounts[0]).arbitraryTransfer(accounts[1], accounts[3], 4);
   assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), -3);
-  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[2]).call()), 4);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[3]).call()), 4);
+
+  // Upvote, then downvote, then remove vote
+  await msgBoard.sendFrom(accounts[3]).vote(postAddr, 1);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), -2);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[3]).call()), 3);
+
+  await msgBoard.sendFrom(accounts[3]).vote(postAddr, 2);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), -4);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[3]).call()), 2);
+
+  await msgBoard.sendFrom(accounts[3]).vote(postAddr, 0);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), -3);
+  // Removing a vote doesn't cost a token to the voter
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[3]).call()), 2);
 }
 
 exports.moderatorSuppressPosts = async function({
@@ -44,7 +64,7 @@ exports.moderatorSuppressPosts = async function({
   assert.strictEqual(list0[0].key, postAddr);
 
   await msgBoard.sendFrom(accounts[0]).addModerators([accounts[2]]);
-  await msgBoard.sendFrom(accounts[2]).setMsgStatus(postAddr, 1);
+  await msgBoard.sendFrom(accounts[2]).setMsgStatus([postAddr], [1]);
 
   const list1 = await msgBoard.methods.fetchChildren(ZERO_ADDRESS, 0, 0, 10).call();
   assert.strictEqual(list1.length, 0);

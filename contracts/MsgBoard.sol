@@ -116,7 +116,7 @@ contract MsgBoard is KarmaERC20, Ownable {
       // On an upvote, the voter gives the author one of their tokens
       // _transfer() is used here because a user cannot vote themselves into debt
       _transfer(msg.sender, msgs[key][0].author, 1);
-    } else {
+    } else if(newVote == 2) {
       msgs[key][0].downvotes++;
       votes[msg.sender][key] = 2;
       // On a downvote, the voter is burning one of the author's tokens
@@ -175,8 +175,11 @@ contract MsgBoard is KarmaERC20, Ownable {
 
   // Moderators can set a non-zero status value in order to set the level of
   //  suppression a post deserves
-  function setMsgStatus(address key, uint8 status) external onlyModerator {
-    msgs[key][0].status = status;
+  function setMsgStatus(address[] memory key, uint8[] memory status) external onlyModerator {
+    require(key.length == status.length);
+    for(uint i=0; i<key.length; i++) {
+      msgs[key[i]][0].status = status[i];
+    }
   }
 
   // Moderators can mint tokens
