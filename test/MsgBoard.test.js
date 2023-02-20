@@ -27,7 +27,31 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
 
   const post2 = await msgBoard.methods.fetchLatest(postAddr).call();
   assert.strictEqual(Number(post2.upvotes), 3);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), 1);
+
+  await msgBoard.sendFrom(accounts[0]).arbitraryTransfer(accounts[1], accounts[2], 4);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), -3);
+  assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[2]).call()), 4);
 }
 
-// TODO moderators can suppress posts and fetchChildren ignores them
-// TODO owner can add/remove moderators
+exports.moderatorSuppressPosts = async function({
+  web3, accounts, deployContract, loadContract, throws, ZERO_ADDRESS,
+}) {
+  const msgBoard = await deployContract(accounts[0], 'MsgBoard', 'Test', 'TEST', 1);
+  const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
+  const list0 = await msgBoard.methods.fetchChildren(ZERO_ADDRESS, 0, 0, 10).call();
+  assert.strictEqual(list0.length, 1);
+  assert.strictEqual(list0[0].key, postAddr);
+
+  await msgBoard.sendFrom(accounts[0]).addModerators([accounts[2]]);
+  await msgBoard.sendFrom(accounts[2]).setMsgStatus(postAddr, 1);
+
+  const list1 = await msgBoard.methods.fetchChildren(ZERO_ADDRESS, 0, 0, 10).call();
+  assert.strictEqual(list1.length, 0);
+  const list2 = await msgBoard.methods.fetchChildren(ZERO_ADDRESS, 1, 0, 10).call();
+  assert.strictEqual(list2.length, 1);
+
+  await msgBoard.sendFrom(accounts[0]).removeModerators([accounts[2]]);
+  assert.strictEqual(await throws(async () => await
+    await msgBoard.sendFrom(accounts[2]).setMsgStatus(postAddr, 2)), true);
+}

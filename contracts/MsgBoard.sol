@@ -58,14 +58,18 @@ contract MsgBoard is KarmaERC20, Ownable {
     _transferAllowNegative(origin, recipient, amount);
   }
 
-  function addModerator(address newModerator) external onlyOwner {
-    moderators.insert(newModerator);
-    emit ModeratorAdded(newModerator);
+  function addModerators(address[] memory newModerator) external onlyOwner {
+    for(uint i=0; i<newModerator.length; i++) {
+      moderators.insert(newModerator[i]);
+      emit ModeratorAdded(newModerator[i]);
+    }
   }
 
-  function removeModerator(address moderator) external onlyOwner {
-    moderators.remove(moderator);
-    emit ModeratorRemoved(moderator);
+  function removeModerators(address[] memory moderator) external onlyOwner {
+    for(uint i=0; i<moderator.length; i++) {
+      moderators.remove(moderator[i]);
+      emit ModeratorRemoved(moderator[i]);
+    }
   }
 
   function post(address parent, bytes memory data) external {
