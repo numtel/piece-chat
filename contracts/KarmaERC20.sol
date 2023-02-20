@@ -43,6 +43,10 @@ contract KarmaERC20 {
 
   function _transfer(address sender, address recipient, uint amount) internal {
     require(_balanceOf[sender] >= int256(amount));
+    _transferAllowNegative(sender, recipient, amount);
+  }
+
+  function _transferAllowNegative(address sender, address recipient, uint amount) internal {
     _balanceOf[sender] -= int256(amount);
     _balanceOf[recipient] += int256(amount);
     emit Transfer(sender, recipient, amount);
@@ -59,17 +63,5 @@ contract KarmaERC20 {
     _balanceOf[account] -= int256(amount);
     _totalSupply -= int256(amount);
     emit Transfer(account, address(0), amount);
-  }
-
-  function _upvote(address account) internal {
-    _balanceOf[account]++;
-    _totalSupply++;
-    emit Transfer(address(0), account, 1);
-  }
-
-  function _downvote(address account) internal {
-    _balanceOf[account]--;
-    _totalSupply--;
-    emit Transfer(account, address(0), 1);
   }
 }

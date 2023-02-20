@@ -7,7 +7,7 @@ web3.eth.handleRevert = true;
 
 const BUILD_DIR = 'build/';
 const GAS_AMOUNT = 20000000;
-const BURN_ACCOUNT = '0x0000000000000000000000000000000000000000';
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 function increaseTime(seconds) {
   return new Promise((resolve, reject) => {
@@ -108,7 +108,7 @@ const cases = fs.readdirSync(__dirname)
       try {
         await theseCases[caseName]({
           // Supply test context as options object in first argument to case
-          web3, accounts, increaseTime, deployContract, loadContract, BURN_ACCOUNT,
+          web3, accounts, increaseTime, deployContract, loadContract, ZERO_ADDRESS,
           throws,
         });
       } catch(error) {
