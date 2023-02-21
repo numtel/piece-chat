@@ -12,6 +12,7 @@ contract MsgBoard is KarmaERC20, Ownable {
 
   string public name;
   string public symbol;
+  address public postCallback;
 
   struct Msg {
     address author;
@@ -36,10 +37,13 @@ contract MsgBoard is KarmaERC20, Ownable {
   event Vote(address indexed key, uint upvotes, uint downvotes);
   event ModeratorAdded(address indexed moderator);
   event ModeratorRemoved(address indexed moderator);
+  event PostCallbackChanged(address indexed oldCallback, address indexed newCallback);
 
-  constructor(string memory _name, string memory _symbol, uint initialMint) {
+  constructor(string memory _name, string memory _symbol, uint initialMint, address _postCallback) {
     name = _name;
     symbol = _symbol;
+    require(_postCallback == address(0) || isContract(_postCallback));
+    postCallback = _postCallback;
     moderators.insert(msg.sender);
     _transferOwnership(msg.sender);
     _mint(msg.sender, initialMint);
@@ -48,6 +52,12 @@ contract MsgBoard is KarmaERC20, Ownable {
   modifier onlyModerator() {
     require(moderators.exists(msg.sender));
     _;
+  }
+
+  function changePostCallback(address newPostCallback) external onlyOwner {
+    require(newPostCallback == address(0) || isContract(newPostCallback));
+    emit PostCallbackChanged(postCallback, newPostCallback);
+    postCallback = newPostCallback;
   }
 
   function transferOwnership(address newOwner) external onlyOwner {
@@ -73,6 +83,9 @@ contract MsgBoard is KarmaERC20, Ownable {
   }
 
   function post(address parent, bytes memory data) external {
+    if(postCallback != address(0)) {
+      IPostCallback(postCallback).onPost(msg.sender, parent, block.timestamp, data);
+    }
     address key = address(uint160(uint256(keccak256(abi.encode(msg.sender, childCount(parent), parent)))));
 
     msgs[key].push(Msg(msg.sender, parent, key, block.timestamp, msgChildren[parent].length, 0, 0, 0, 0, 0, data));
@@ -87,6 +100,9 @@ contract MsgBoard is KarmaERC20, Ownable {
 
   function edit(address key, bytes memory data) external {
     require(msg.sender == msgs[key][0].author);
+    if(postCallback != address(0)) {
+      IPostCallback(postCallback).onEdit(msg.sender, msgs[key][0].parent, block.timestamp, data);
+    }
     msgs[key].push(Msg(msg.sender, msgs[key][0].parent, key, block.timestamp, 0, 0, 0, 0, 0, 0, data));
     emit MsgEdited(key);
   }
@@ -193,4 +209,17 @@ contract MsgBoard is KarmaERC20, Ownable {
     }
   }
 
+  function isContract(address _addr) private view returns (bool){
+    uint32 size;
+    assembly {
+      size := extcodesize(_addr)
+    }
+    return (size > 0);
+  }
+
+}
+
+interface IPostCallback {
+  function onPost(address author, address parent, uint timestamp, bytes memory data) external;
+  function onEdit(address author, address parent, uint timestamp, bytes memory data) external;
 }

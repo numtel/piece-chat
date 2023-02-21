@@ -4,7 +4,7 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
   web3, accounts, deployContract, loadContract, throws, ZERO_ADDRESS,
 }) {
   const INITIAL_MINT = 1000;
-  const msgBoard = await deployContract(accounts[0], 'MsgBoard', 'Test', 'TEST', INITIAL_MINT);
+  const msgBoard = await deployContract(accounts[0], 'MsgBoard', 'Test', 'TEST', INITIAL_MINT, ZERO_ADDRESS);
   
   const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
   assert.strictEqual(Number(await msgBoard.methods._balanceOf(accounts[1]).call()), 0);
@@ -57,7 +57,7 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
 exports.moderatorSuppressPosts = async function({
   web3, accounts, deployContract, loadContract, throws, ZERO_ADDRESS,
 }) {
-  const msgBoard = await deployContract(accounts[0], 'MsgBoard', 'Test', 'TEST', 1);
+  const msgBoard = await deployContract(accounts[0], 'MsgBoard', 'Test', 'TEST', 1, ZERO_ADDRESS);
   const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
   const list0 = await msgBoard.methods.fetchChildren(ZERO_ADDRESS, 0, 0, 10).call();
   assert.strictEqual(list0.length, 1);
@@ -73,5 +73,31 @@ exports.moderatorSuppressPosts = async function({
 
   await msgBoard.sendFrom(accounts[0]).removeModerators([accounts[2]]);
   assert.strictEqual(await throws(async () => await
-    await msgBoard.sendFrom(accounts[2]).setMsgStatus(postAddr, 2)), true);
+    msgBoard.sendFrom(accounts[2]).setMsgStatus(postAddr, 2)), true);
+}
+
+exports.callbackCanStopPostsAndEdits = async function({
+  web3, accounts, deployContract, loadContract, throws, ZERO_ADDRESS,
+}) {
+  const callback = await deployContract(accounts[0], 'TestPostCallback');
+  const msgBoard = await deployContract(accounts[0], 'MsgBoard', 'Test', 'TEST', 1, ZERO_ADDRESS);
+
+  await msgBoard.sendFrom(accounts[0]).changePostCallback(callback.options.address);
+
+  assert.strictEqual(await throws(async () => await
+    msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')), true);
+
+  await callback.sendFrom(accounts[0]).setAllow(true);
+
+  const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
+
+  await callback.sendFrom(accounts[0]).setAllow(false);
+
+  assert.strictEqual(await throws(async () => await
+    msgBoard.sendFrom(accounts[1]).edit(postAddr, '0xdeadbeef')), true);
+
+  await callback.sendFrom(accounts[0]).setAllow(true);
+
+  await msgBoard.sendFrom(accounts[1]).edit(postAddr, '0xdeadbeef');
+
 }
