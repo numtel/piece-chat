@@ -20,7 +20,7 @@ ganacheServer.listen(PORT, async err => {
 const web3 = new Web3(ganacheServer.provider);
 
 const contracts = {
-  Messages: {},
+  MsgBoardFactory: {},
 };
 
 let accounts = [];
@@ -64,5 +64,5 @@ async function deployContracts() {
       return out;
     }, {}),
   });
-  fs.writeFileSync(`${BUILD_DIR}config.json`, config);
+  fs.writeFileSync(`${BUILD_DIR}config.js`, `window.config=${config};`);
 }

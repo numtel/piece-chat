@@ -32,6 +32,11 @@ contract MsgBoard is KarmaERC20, Ownable {
   mapping(address => address[]) public msgsByAuthor;
   mapping(address => mapping(address => uint8)) public votes;
 
+  // TODO why doesn't msgs work in browser??
+  function getMsg(address key, uint index) external view returns(Msg memory) {
+    return msgs[key][index];
+  }
+
   event NewMsg(address indexed key);
   event MsgEdited(address indexed key);
   event Vote(address indexed key, uint upvotes, uint downvotes);
@@ -39,14 +44,14 @@ contract MsgBoard is KarmaERC20, Ownable {
   event ModeratorRemoved(address indexed moderator);
   event PostCallbackChanged(address indexed oldCallback, address indexed newCallback);
 
-  constructor(string memory _name, string memory _symbol, uint initialMint, address _postCallback) {
+  constructor(address owner, string memory _name, string memory _symbol, uint initialMint, address _postCallback) {
     name = _name;
     symbol = _symbol;
     require(_postCallback == address(0) || isContract(_postCallback));
     postCallback = _postCallback;
-    moderators.insert(msg.sender);
-    _transferOwnership(msg.sender);
-    _mint(msg.sender, initialMint);
+    moderators.insert(owner);
+    _transferOwnership(owner);
+    _mint(owner, initialMint);
   }
 
   modifier onlyModerator() {
@@ -68,18 +73,14 @@ contract MsgBoard is KarmaERC20, Ownable {
     _transferAllowNegative(origin, recipient, amount);
   }
 
-  function addModerators(address[] memory newModerator) external onlyOwner {
-    for(uint i=0; i<newModerator.length; i++) {
-      moderators.insert(newModerator[i]);
-      emit ModeratorAdded(newModerator[i]);
-    }
+  function addModerator(address newModerator) external onlyOwner {
+    moderators.insert(newModerator);
+    emit ModeratorAdded(newModerator);
   }
 
-  function removeModerators(address[] memory moderator) external onlyOwner {
-    for(uint i=0; i<moderator.length; i++) {
-      moderators.remove(moderator[i]);
-      emit ModeratorRemoved(moderator[i]);
-    }
+  function removeModerator(address moderator) external onlyOwner {
+    moderators.remove(moderator);
+    emit ModeratorRemoved(moderator);
   }
 
   function post(address parent, bytes memory data) external {
@@ -149,44 +150,6 @@ contract MsgBoard is KarmaERC20, Ownable {
 
   function childCount(address key) public view returns(uint) {
     return msgChildren[key].length;
-  }
-
-  function fetchLatest(address key) public view returns(Msg memory) {
-    require(msgs[key].length > 0);
-
-    Msg memory out = msgs[key][0];
-    out.childCount = msgChildren[key].length;
-    out.versionCount = msgs[key].length;
-
-    if(msgs[key].length > 1) {
-      out.data = msgs[key][msgs[key].length - 1].data;
-    }
-    return out;
-  }
-
-  // TODO support passing viewing address for self voting status for frontend
-  function fetchChildren(address key, uint8 maxStatus, uint startIndex, uint fetchCount) external view returns(Msg[] memory) {
-    require(startIndex < msgChildren[key].length);
-    if(startIndex + fetchCount >= msgChildren[key].length) {
-      fetchCount = msgChildren[key].length - startIndex;
-    }
-    Msg[] memory selection = new Msg[](fetchCount);
-    uint activeCount;
-    uint i;
-    while(activeCount < fetchCount && i < msgChildren[key].length) {
-      selection[i] = fetchLatest(msgChildren[key][i]);
-      if(selection[i].status <= maxStatus) activeCount++;
-      i++;
-    }
-
-    Msg[] memory out = new Msg[](activeCount);
-    uint j;
-    for(i=0; i<fetchCount; i++) {
-      if(selection[i].status <= maxStatus) {
-        out[j++] = selection[i];
-      }
-    }
-    return out;
   }
 
   // Moderators can set a non-zero status value in order to set the level of
