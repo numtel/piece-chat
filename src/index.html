@@ -2,14 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/style.css">
+    <title>Message Board</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
+    <link href="/style.css" rel="stylesheet">
   </head>
   <body>
-    <script>
-      navigator.serviceWorker.register('/sw.js').then(result => {
-        document.location.reload();
-      });
-    </script>
+    <div id="app"></div>
+    <script src="/deps/web3.min.js"></script>
+    <script src="/deps/coinbase.min.js"></script>
+    <script src="/deps/web3modal.min.js"></script>
+    <script src="/deps/gunzip.min.js"></script>
+    <script src="/deps/gzip.min.js"></script>
+    <script src="/config.js"></script>
+    <script src="/index.js" type="module"></script>
   </body>
 </html>

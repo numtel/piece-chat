@@ -2,6 +2,20 @@
 pragma solidity 0.8.15;
 
 contract MsgBoardBrowser {
+  function stats(IMsgBoard board, address account) public view returns(
+    string memory name,
+    string memory symbol,
+    address owner,
+    address[] memory moderators,
+    int256 balance
+  ) {
+    name = board.name();
+    symbol = board.symbol();
+    owner = board.owner();
+    moderators = board.listModerators();
+    balance = board._balanceOf(account);
+  }
+
   function fetchLatest(IMsgBoard board, address key) public view returns(IMsgBoard.Msg memory) {
     uint versionCount = board.versionCount(key);
     require(versionCount > 0);
@@ -19,6 +33,7 @@ contract MsgBoardBrowser {
   // TODO support passing viewing address for self voting status for frontend
   function fetchChildren(IMsgBoard board, address key, uint8 maxStatus, uint startIndex, uint fetchCount) external view returns(IMsgBoard.Msg[] memory) {
     uint childCount = board.childCount(key);
+    if(childCount == 0) return new IMsgBoard.Msg[](0);
     require(startIndex < childCount);
     if(startIndex + fetchCount >= childCount) {
       fetchCount = childCount - startIndex;
@@ -44,6 +59,12 @@ contract MsgBoardBrowser {
 }
 
 interface IMsgBoard {
+  function name() external view returns(string memory);
+  function symbol() external view returns(string memory);
+  function owner() external view returns(address);
+  function listModerators() external view returns(address[] memory);
+  function _balanceOf(address account) external view returns(int256);
+
   struct Msg {
     address author;
     address parent;

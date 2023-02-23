@@ -1,5 +1,6 @@
 const assert = require('assert');
 
+// TODO test a MsgBoard with 0 moderators
 exports.upvotesEarnTokensAndCanBeTransfered = async function({
   web3, accounts, deployContract, loadContract, throws, ZERO_ADDRESS,
 }) {
@@ -58,9 +59,11 @@ exports.upvotesEarnTokensAndCanBeTransfered = async function({
 exports.moderatorSuppressPosts = async function({
   web3, accounts, deployContract, loadContract, throws, ZERO_ADDRESS,
 }) {
-  const msgBoard = await deployContract(accounts[0], 'MsgBoard', accounts[0], 'Test', 'TEST', 1, ZERO_ADDRESS);
-  const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
   const browser = await deployContract(accounts[0], 'MsgBoardBrowser');
+  const msgBoard = await deployContract(accounts[0], 'MsgBoard', accounts[0], 'Test', 'TEST', 1, ZERO_ADDRESS);
+  const listBefore = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 0, 0, 10).call();
+  assert.strictEqual(listBefore.length, 0);
+  const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
   const list0 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 0, 0, 10).call();
   assert.strictEqual(list0.length, 1);
   assert.strictEqual(list0[0].key, postAddr);

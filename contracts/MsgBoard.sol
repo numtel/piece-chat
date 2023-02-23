@@ -59,6 +59,14 @@ contract MsgBoard is KarmaERC20, Ownable {
     _;
   }
 
+  function listModerators() external view returns(address[] memory) {
+    address[] memory out = new address[](moderators.count());
+    for(uint i; i<out.length; i++) {
+      out[i] = moderators.keyList[i];
+    }
+    return out;
+  }
+
   function changePostCallback(address newPostCallback) external onlyOwner {
     require(newPostCallback == address(0) || isContract(newPostCallback));
     emit PostCallbackChanged(postCallback, newPostCallback);

@@ -21,6 +21,7 @@ const web3 = new Web3(ganacheServer.provider);
 
 const contracts = {
   MsgBoardFactory: {},
+  MsgBoardBrowser: {},
 };
 
 let accounts = [];
@@ -46,7 +47,6 @@ async function deployContracts() {
   }
   // Provide contract addresses to frontend
   const config = JSON.stringify({
-    home: [ , '0x6E43Ed02ca36DB68917a853405b566b5D16A329d', ''],
     root: 'http://localhost:3000/',
     rpc: `http://localhost:${PORT}`,
     chain: '0x539',
