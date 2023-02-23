@@ -1,5 +1,6 @@
 import {Template, html} from '/Template.js';
 import {ZERO_ACCOUNT} from '/utils.js';
+import Header from '/components/Header.js';
 
 export default class Home extends Template {
   constructor() {
@@ -8,9 +9,7 @@ export default class Home extends Template {
   }
   render() {
     return html`
-      <div class="blue window">
-        <h1>Message Board</h1>
-      </div>
+      ${new Header}
       <form onsubmit="tpl(this).newBoard(); return false">
         <fieldset>
           <legend>Create a new message board</legend>

@@ -1,20 +1,30 @@
-body {background:cyan;}
+body {background:radial-gradient(ellipse 35% 35% at 8% 10%, #ff6b0b85 0%, #ec00c355 50%, #1200f155 100%), radial-gradient(ellipse 55% 75% at 40% 40%, #af00e7a5 0%, #3d1bce95 50%, #16adfc95 100%);min-height:100vh;font-family:sans-serif;}
+h1>a { padding-left:3rem; font-size:2rem; background:url(/logo.png) no-repeat top left; background-size:contain; text-decoration:none; color:#000;}
+a {color:#44032e;}
 
 
-ul.children {clear:both;padding-left:20px;list-style:none;}
-.msg {background:#0001;margin:20px 0; padding:40px;}
-.msg dl {}
-.msg dt {}
-.msg dd {}
+ul.children {clear:both;padding-left:0;list-style:none;}
+.msg {background:#fff3;margin:0; padding:10px;display:flex;}
 .msg a {}
+.msg .metadata { font-size: 0.8rem; }
+.msg .metadata a { text-decoration:none; font-weight:bold; }
+.msg .metadata a:hover {text-decoration:underline;}
+.msg a.control { text-decoration:none; font-weight:bold;color:#000d;font-size:0.8rem; }
+.msg a.control:hover {text-decoration:underline;}
 
-.score {display:flex; flex-direction:column; float:left; margin:0 10px 10px 0;}
-.score .up {}
-.score .up:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid black;top:-10px;left:-6px;}
-.score .down {}
-.score .down:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid black;top:8px;left:-6px;}
-.score button {font-size:0;cursor:pointer;width:5px;height:8px;background:black;border:0; position:relative;}
+.msg>.score {display:flex; flex-direction:column;margin:10px;}
+.msg>.score .up {}
+.msg>.score .up:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #0007;top:-10px;left:-6px;}
+.msg>.score .down {}
+.msg>.score .down:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid #0007;top:8px;left:-6px;}
+.msg>.score button {margin:2px; font-size:0;width:8px;height:8px;background:#0007;border-radius:0; padding:0; position:relative;}
 
-form {}
-textarea {width: 100%; height: 100px;margin-bottom:15px;}
+form {background:#fff2;margin:20px 0; padding:20px;}
+fieldset {border:0;}
+fieldset>div>label>span {display:block; margin-top:10px; font-size:0.9rem;}
+legend {}
+button {cursor:pointer; border:0; background:#0007; padding:7px 15px; border-radius:10px; font-size:1.0rem;color:#eee;}
+
+input {margin-bottom:15px; background:#fff2; border:1px solid #fff4;}
+textarea {width: 100%; height: 100px;margin-bottom:15px; background:#fff2; border:1px solid #fff4;}
 

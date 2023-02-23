@@ -1,5 +1,5 @@
 import {Template, html, userInput} from '/Template.js';
-import {ZERO_ACCOUNT, displayAddress} from '/utils.js';
+import {ZERO_ACCOUNT, displayAddress, remaining} from '/utils.js';
 
 export default class Posts extends Template {
   constructor(boardAddr, parent, posts) {
@@ -24,18 +24,20 @@ export default class Posts extends Template {
       <div class="msg">
         <div class="score">
           <button class="up" onclick="tpl(this).vote('${msg.key}', 1)">Upvote</button>
-          <span>${msg.upvotes - msg.downvotes}<!-- Age: ${msg.age}, Score: ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes} --></span>
           <button class="down" onclick="tpl(this).vote('${msg.key}', 2)">Downvote</button>
         </div>
-        <div class="metadata">
-          <span class="author">Posted by <a href="/account/${msg.author}">${displayAddress(msg.author)}</a></span>
-          <span class="time">at <time>${msg.timestamp.toLocaleString()} ${msg.versionCount > 1 ? '(Edited)' : ''}</time></span>
+        <div>
+          <div class="metadata">
+            <span class="author"><a href="/account/${msg.author}">${displayAddress(msg.author)}</a></span>
+            <span class="score">${msg.upvotes - msg.downvotes} ${Math.abs(msg.upvotes - msg.downvotes)===1 ? 'point' : 'points'}<!-- Age: ${msg.age}, Score: ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes} --></span>
+            <span class="time"><time title="${msg.timestamp.toLocaleString()}" datetime="${msg.timestamp.toJSON()}">${msg.ago} ago</time> ${msg.versionCount > 1 ? '(Edited)' : ''}</time></span>
+          </div>
+          <div class="text">
+            ${userInput(msg.data)}
+          </div>
+          ${displayAsReply ? '' : html`<a class="control" href="/${msg.key}/reply">reply</a>`}
+          ${displayAsChild ? (msg.childCount > 0 ? html`<div class="children"><a href="/${msg.key}">Load ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a></div>` : '') : html`<a class="control" href="/${msg.parent}">parent</a>`}
         </div>
-        <div class="text">
-          ${userInput(msg.data)}
-        </div>
-        ${displayAsChild ? html`<a href="/${msg.key}">View ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a>` : html`<a href="/${msg.parent}">View Parent...</a>`}
-        ${displayAsReply ? '' : html`<a href="/${msg.key}/reply">Post reply...</a>`}
       </div>
     `;
   }
@@ -91,6 +93,7 @@ function formatMsg(msgRaw) {
     parent: msgRaw.parent,
     key: msgRaw.key,
     timestamp: new Date(msgRaw.timestamp * 1000),
+    ago: remaining(Math.floor(Date.now()/1000) - msgRaw.timestamp, true),
     childCount: Number(msgRaw.childCount),
     versionCount: Number(msgRaw.versionCount),
     upvotes,

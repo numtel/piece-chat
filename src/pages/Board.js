@@ -1,5 +1,6 @@
 import {AsyncTemplate, html, userInput} from '/Template.js';
 import {ZERO_ACCOUNT, displayAddress} from '/utils.js';
+import Header from '/components/Header.js';
 import CreatePost from '/components/CreatePost.js';
 import Posts from '/components/Posts.js';
 
@@ -25,8 +26,8 @@ export default class Board extends AsyncTemplate {
   }
   async render() {
     return html`
-      <a href="/" $${this.link}>Board List</a>
-      <h1>${userInput(this.data[0].name)} (${userInput(this.data[0].symbol)})</h1>
+      ${new Header}
+      <h2>${userInput(this.data[0].name)} (${userInput(this.data[0].symbol)})</h2>
       <p>Owner: ${displayAddress(this.data[0].owner)}, moderators: ${this.data[0].moderators.length === 0 ? 'none' : this.data[0].moderators.map(displayAddress)}</p>
       <p>My Balance: ${this.data[0].balance}</p>
       ${new CreatePost(this.address)}
