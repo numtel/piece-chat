@@ -119,7 +119,7 @@ contract MsgBoard is KarmaERC20, Ownable {
   function vote(address key, uint8 newVote) external {
     require(msgs[key][0].timestamp > 0);
     uint curVote = votes[msg.sender][key];
-    require(curVote != newVote);
+    require(curVote != newVote && newVote < 3);
     if(curVote == 1) {
       msgs[key][0].upvotes--;
       // User had upvoted the post, but are now not upvoting
@@ -148,6 +148,8 @@ contract MsgBoard is KarmaERC20, Ownable {
       _transferAllowNegative(msgs[key][0].author, address(0), 1);
       // And burning one for the vote too
       _burn(msg.sender, 1);
+    } else if(newVote == 0) {
+      votes[msg.sender][key] = 0;
     }
     emit Vote(key, msgs[key][0].upvotes, msgs[key][0].downvotes);
   }

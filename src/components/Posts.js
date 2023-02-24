@@ -27,8 +27,8 @@ export default class Posts extends Template {
     return html`
       <div class="msg">
         <div class="score">
-          <button class="up" onclick="tpl(this).vote('${msg.key}', 1)">Upvote</button>
-          <button class="down" onclick="tpl(this).vote('${msg.key}', 2)">Downvote</button>
+          <button class="up ${msg.myVote == 1 ? 'active' : ''}" onclick="tpl(this).vote('${msg.key}', ${msg.myVote == 1 ? 0 : 1})">Upvote</button>
+          <button class="down ${msg.myVote == 2 ? 'active' : ''}" onclick="tpl(this).vote('${msg.key}', ${msg.myVote == 2 ? 0 : 2})">Downvote</button>
         </div>
         <div class="body">
           <div class="metadata">
@@ -57,7 +57,7 @@ export default class Posts extends Template {
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
     // TODO pagination
-    const data = await browser.methods.fetchChildren(this.board.address, key, 0, 0, 10).call();
+    const data = await browser.methods.fetchChildren(this.board.address, key, 0, 0, 10, app.currentAccount, false).call();
     this.set(['children', key], new Posts(this.board, key, data));
   }
   async vote(key, newVote) {
@@ -75,7 +75,7 @@ export default class Posts extends Template {
   async reloadPost(key) {
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
-    const latest = await browser.methods.fetchLatest(this.board.address, key).call();
+    const latest = await browser.methods.fetchLatest(this.board.address, key, app.currentAccount).call();
     let index=0;
     for(;this.data[index].key !== key; index++);
     this.set(['data', index], formatMsg(latest));
@@ -83,8 +83,9 @@ export default class Posts extends Template {
   async prependChild(key, form) {
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
-    const latest = await browser.methods.fetchLatest(this.board.address, key).call();
-    const parent = await browser.methods.fetchLatest(this.board.address, latest.parent).call();
+    const latestResponse = await browser.methods.fetchLatest(this.board.address, key, app.currentAccount).call();
+    const latest = latestResponse.item;
+    const parent = await browser.methods.fetchLatest(this.board.address, latest.parent, app.currentAccount).call();
     if(latest.parent in this.children) {
       this.children[latest.parent].data.unshift(formatMsg(latest));
       // Re-render the child list
@@ -122,8 +123,9 @@ function calcScore(upvotes, downvotes, age) {
   return score;
 }
 
-function formatMsg(msgRaw) {
-  if(!msgRaw) return msgRaw;
+function formatMsg(respRaw) {
+  if(!respRaw) return respRaw;
+  const msgRaw = respRaw.item;
   const gunzip = new Zlib.Gunzip(Uint8Array.from(msgRaw.data.slice(2).match(/.{1,2}/g).map((byte) => parseInt(byte, 16))));
   const upvotes = Number(msgRaw.upvotes);
   const downvotes = Number(msgRaw.downvotes);
@@ -140,6 +142,7 @@ function formatMsg(msgRaw) {
     upvotes,
     downvotes,
     votes: upvotes - downvotes,
+    myVote: Number(respRaw.vote),
     controversial: (upvotes + downvotes) / Math.abs(upvotes - downvotes),
     score: calcScore(upvotes, downvotes, age),
     age,

@@ -27,7 +27,10 @@ ul.children {clear:both;padding-left:0;list-style:none;}
 .msg>.score .up:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #0007;top:-10px;left:-6px;}
 .msg>.score .down {}
 .msg>.score .down:after {content:" "; width:0; height:0; position:absolute; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid #0007;top:8px;left:-6px;}
+.msg>.score .down.active:after {border-top-color: #44032e;}
+.msg>.score .up.active:after {border-bottom-color: #44032e;}
 .msg>.score button {margin:2px; font-size:0;width:8px;height:8px;background:#0007;border-radius:0; padding:0; position:relative;}
+.msg>.score button.active {background:#44032e;}
 
 form {background:#fff2;margin:20px 0; padding:20px;}
 fieldset {border:0;}

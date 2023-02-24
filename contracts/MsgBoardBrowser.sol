@@ -16,7 +16,12 @@ contract MsgBoardBrowser {
     balance = board._balanceOf(account);
   }
 
-  function fetchLatest(IMsgBoard board, address key) public view returns(IMsgBoard.Msg memory) {
+  struct MsgView {
+    IMsgBoard.Msg item;
+    uint8 vote;
+  }
+
+  function fetchLatest(IMsgBoard board, address key, address voter) public view returns(MsgView memory) {
     uint versionCount = board.versionCount(key);
     require(versionCount > 0);
 
@@ -27,30 +32,37 @@ contract MsgBoardBrowser {
     if(versionCount > 1) {
       out.data = board.getMsg(key, versionCount - 1).data;
     }
-    return out;
+    return MsgView(out, board.votes(voter, key));
   }
 
-  // TODO support passing viewing address for self voting status for frontend
-  function fetchChildren(IMsgBoard board, address key, uint8 maxStatus, uint startIndex, uint fetchCount) external view returns(IMsgBoard.Msg[] memory) {
+  function fetchChildren(IMsgBoard board, address key, uint8 maxStatus, uint startIndex, uint fetchCount, address voter, bool reverseScan) external view returns(MsgView[] memory) {
     uint childCount = board.childCount(key);
-    if(childCount == 0) return new IMsgBoard.Msg[](0);
+    if(childCount == 0) return new MsgView[](0);
     require(startIndex < childCount);
     if(startIndex + fetchCount >= childCount) {
       fetchCount = childCount - startIndex;
     }
-    IMsgBoard.Msg[] memory selection = new IMsgBoard.Msg[](fetchCount);
+    MsgView[] memory selection = new MsgView[](fetchCount);
     uint activeCount;
     uint i;
-    while(activeCount < fetchCount && i < childCount) {
-      selection[i] = fetchLatest(board, board.msgChildren(key, i));
-      if(selection[i].status <= maxStatus) activeCount++;
+    uint childIndex;
+    if(reverseScan) childIndex = childCount - 1;
+    while(activeCount < fetchCount && childIndex < childCount) {
+      selection[i] = fetchLatest(board, board.msgChildren(key, childIndex), voter);
+      if(selection[i].item.status <= maxStatus) activeCount++;
+      if(reverseScan) {
+        if(childIndex == 0) break;
+        childIndex--;
+      } else {
+        childIndex++;
+      }
       i++;
     }
 
-    IMsgBoard.Msg[] memory out = new IMsgBoard.Msg[](activeCount);
+    MsgView[] memory out = new MsgView[](activeCount);
     uint j;
     for(i=0; i<fetchCount; i++) {
-      if(selection[i].status <= maxStatus) {
+      if(selection[i].item.status <= maxStatus) {
         out[j++] = selection[i];
       }
     }

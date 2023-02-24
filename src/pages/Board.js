@@ -25,13 +25,20 @@ export default class Board extends AsyncTemplate {
 
       this.set('data', await Promise.all([
         this.stats(),
-        // TODO pagination
-        this.browser.methods.fetchChildren(this.address, this.key || ZERO_ACCOUNT, 0, 0, 10).call(),
-        this.key ? this.browser.methods.fetchLatest(this.address, this.key).call() : null,
+        this.children(),
+        this.key ? this.browser.methods.fetchLatest(this.address, this.key, app.currentAccount).call() : null,
       ]));
+      console.log(this.data);
       this.set('isOwner', this.data[0].owner === app.currentAccount);
       this.set('isModerator', this.data[0].moderators.indexOf(app.currentAccount) !== -1);
     }
+  }
+  children() {
+    // TODO pagination
+    return this.browser.methods.fetchChildren(this.address, this.key || ZERO_ACCOUNT, 0, 0, 10, app.currentAccount, this.sort === 'Oldest' ? false : true).call();
+  }
+  async refreshChildren() {
+    this.set(['data', 1], await this.children());
   }
   stats() {
     return this.browser.methods.stats(this.address, app.currentAccount).call();
@@ -103,9 +110,11 @@ class SortWidget extends Template {
     this.set('showSortMenu', !this.showSortMenu);
   }
   setSort(newSort) {
+    const oldSort = this.board.sort;
     this.set('showSortMenu', false);
     this.board.set('sort', newSort);
     this.board.set('sortFun', sorts[newSort]);
+    if(newSort === 'Oldest' || oldSort === 'Oldest') this.board.refreshChildren();
   }
 }
 
