@@ -1,11 +1,12 @@
 import {Template, html, userInput} from '/Template.js';
 import {ZERO_ACCOUNT, displayAddress, remaining} from '/utils.js';
 import CreatePost from '/components/CreatePost.js';
+import SuppressPost from '/components/SuppressPost.js';
 
 export default class Posts extends Template {
-  constructor(boardAddr, parent, posts, displaySingle) {
+  constructor(board, parent, posts, displaySingle) {
     super();
-    this.set('boardAddr', boardAddr);
+    this.set('board', board);
     this.set('parent', parent);
     this.set('displaySingle', displaySingle);
     this.set('children', {});
@@ -30,7 +31,7 @@ export default class Posts extends Template {
           <button class="up" onclick="tpl(this).vote('${msg.key}', 1)">Upvote</button>
           <button class="down" onclick="tpl(this).vote('${msg.key}', 2)">Downvote</button>
         </div>
-        <div>
+        <div class="body">
           <div class="metadata">
             <span class="author"><a href="/account/${msg.author}">${displayAddress(msg.author)}</a></span>
             <span class="score">${msg.upvotes - msg.downvotes} ${Math.abs(msg.upvotes - msg.downvotes)===1 ? 'point' : 'points'}<!-- Age: ${msg.age}, Score: ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes} --></span>
@@ -39,12 +40,15 @@ export default class Posts extends Template {
           <div class="text">
             ${userInput(msg.data)}
           </div>
-          <a class="control" href="/${this.boardAddr}/${msg.key}" $${this.link}>permalink</a>
-          ${displayAsReply ? '' : html`<a class="control" href="/${this.boardAddr}/${msg.key}" onclick="tpl(this).set(['replies', '${msg.key}'], true); return false">reply</a>`}
-          <a class="control" href="/${this.boardAddr}${msg.parent === ZERO_ACCOUNT ? '' : `/${msg.parent}`}" $${this.link}>parent</a>
+          <a class="control" href="/${this.board.address}/${msg.key}" $${this.link}>permalink</a>
+          ${displayAsReply ? '' : html`<a class="control" href="/${this.board.address}/${msg.key}" onclick="tpl(this).set(['replies', '${msg.key}'], true); return false">reply</a>`}
+          <a class="control" href="/${this.board.address}${msg.parent === ZERO_ACCOUNT ? '' : `/${msg.parent}`}" $${this.link}>parent</a>
           ${msg.author === app.currentAccount ? html`<a class="control" href="#" onclick="tpl(this).set(['replies', '${msg.key}'], 'edit'); return false">edit</a>` : ''}
-          ${this.replies[msg.key] ? new CreatePost(this.boardAddr, msg.key, this, this.replies[msg.key] === 'edit' ? msg.data : null) : ''}
-          ${displayAsChild ? (msg.childCount > 0 ? (msg.key in this.children ? this.children[msg.key] : html`<div class="children"><a href="/${this.boardAddr}/${msg.key}" class="loadChildren" onclick="tpl(this).loadChildren('${msg.key}', event.target); return false">Load ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a></div>`) : '') : ''}
+          ${this.board.isModerator ? html`<a class="control" href="#" onclick="tpl(this).set(['replies', '${msg.key}'], 'suppress'); return false">suppress</a>` : ''}
+          ${this.replies[msg.key] ?
+            this.replies[msg.key] === 'suppress' ? new SuppressPost(this.board, msg, this) :
+            new CreatePost(this.board.address, msg.key, this, this.replies[msg.key] === 'edit' ? msg.data : null) : ''}
+          ${displayAsChild ? (msg.childCount > 0 ? (msg.key in this.children ? this.children[msg.key] : html`<div class="children"><a href="/${this.board.address}/${msg.key}" class="loadChildren" onclick="tpl(this).loadChildren('${msg.key}', event.target); return false">Load ${msg.childCount} child${msg.childCount === 1 ? '' : 'ren'}...</a></div>`) : '') : ''}
         </div>
       </div>
     `;
@@ -54,12 +58,12 @@ export default class Posts extends Template {
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
     // TODO pagination
-    const data = await browser.methods.fetchChildren(this.boardAddr, key, 0, 0, 10).call();
-    this.set(['children', key], new Posts(this.boardAddr, key, data));
+    const data = await browser.methods.fetchChildren(this.board.address, key, 0, 0, 10).call();
+    this.set(['children', key], new Posts(this.board, key, data));
   }
   async vote(key, newVote) {
     const boardABI = await (await fetch('/MsgBoard.abi')).json();
-    const board = new app.web3.eth.Contract(boardABI, this.boardAddr);
+    const board = new app.web3.eth.Contract(boardABI, this.board.address);
     try {
       await app.wallet.send(board.methods.vote(key, newVote));
     } catch(error) {
@@ -72,7 +76,7 @@ export default class Posts extends Template {
   async reloadPost(key) {
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
-    const latest = await browser.methods.fetchLatest(this.boardAddr, key).call();
+    const latest = await browser.methods.fetchLatest(this.board.address, key).call();
     let index=0;
     for(;this.data[index].key !== key; index++);
     this.set(['data', index], formatMsg(latest));
@@ -80,8 +84,8 @@ export default class Posts extends Template {
   async prependChild(key, form) {
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
-    const latest = await browser.methods.fetchLatest(this.boardAddr, key).call();
-    const parent = await browser.methods.fetchLatest(this.boardAddr, latest.parent).call();
+    const latest = await browser.methods.fetchLatest(this.board.address, key).call();
+    const parent = await browser.methods.fetchLatest(this.board.address, latest.parent).call();
     if(latest.parent in this.children) {
       this.children[latest.parent].data.unshift(formatMsg(latest));
       // Re-render the child list
@@ -129,6 +133,7 @@ function formatMsg(msgRaw) {
     author: msgRaw.author,
     parent: msgRaw.parent,
     key: msgRaw.key,
+    status: msgRaw.status,
     timestamp: new Date(msgRaw.timestamp * 1000),
     ago: remaining(Math.floor(Date.now()/1000) - msgRaw.timestamp, true),
     childCount: Number(msgRaw.childCount),

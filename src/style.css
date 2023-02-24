@@ -6,10 +6,11 @@ a {color:#44032e;}
 ul.children {clear:both;padding-left:0;list-style:none;}
 .msg {background:#fff3;margin:0; padding:10px;display:flex;}
 .msg a {}
+.msg>.body { flex:1}
 .msg .metadata { font-size: 0.8rem; }
 .msg .metadata a { text-decoration:none; font-weight:bold; }
 .msg .metadata a:hover {text-decoration:underline;}
-.msg a.control { text-decoration:none; font-weight:bold;color:#000d;font-size:0.8rem; }
+.msg a.control { padding:0 2px; text-decoration:none; font-weight:bold;color:#000d;font-size:0.8rem; }
 .msg a.control:hover {text-decoration:underline;}
 
 .msg>.score {display:flex; flex-direction:column;margin:10px;}
