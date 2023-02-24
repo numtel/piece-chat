@@ -4,6 +4,8 @@ import Header from '/components/Header.js';
 import CreatePost from '/components/CreatePost.js';
 import Posts from '/components/Posts.js';
 import MintWidget from '/components/MintWidget.js';
+import ArbitraryTransferWidget from '/components/ArbitraryTransferWidget.js';
+import AddModeratorWidget from '/components/AddModeratorWidget.js';
 
 export default class Board extends AsyncTemplate {
   constructor(address, key) {
@@ -39,12 +41,35 @@ export default class Board extends AsyncTemplate {
     return html`
       ${new Header}
       <h2><a href="/${this.address}" $${this.link}>${userInput(this.data[0].name)} (${userInput(this.data[0].symbol)})</a></h2>
-      <p>Owner: ${displayAddress(this.data[0].owner)}, moderators: ${this.data[0].moderators.length === 0 ? 'none' : this.data[0].moderators.map(displayAddress)}</p>
+      <p>
+        Owner: ${displayAddress(this.data[0].owner)}, moderators:
+        ${this.data[0].moderators.length === 0 ? 'none' : this.data[0].moderators.map(mod => html`
+          <span class="moderator">
+            ${displayAddress(mod)}
+            ${this.isOwner ? html`<button onclick="tpl(this).removeModerator('${mod}')">Remove</button>` : ''}
+          </span>
+        `)}
+      </p>
       <p>My Balance: ${this.data[0].balance}</p>
+      ${this.isOwner ? new AddModeratorWidget(this) : ''}
+      ${this.isOwner ? new ArbitraryTransferWidget(this) : ''}
       ${this.isModerator ? new MintWidget(this) : ''}
       ${this.key ? new Posts(this, this.data[2].parent, [this.data[2]], true):''}
       ${new CreatePost(this.address, this.key)}
       ${new Posts(this, null, this.data[1])}
     `;
+  }
+  async removeModerator(mod) {
+    const boardABI = await (await fetch('/MsgBoard.abi')).json();
+    const board = new app.web3.eth.Contract(boardABI, this.address);
+    let response;
+    try {
+      response = await app.wallet.send(board.methods.removeModerator(mod));
+    } catch(error) {
+      alert(error);
+      return;
+    }
+    this.set('showForm', false);
+    await this.refreshStats();
   }
 }

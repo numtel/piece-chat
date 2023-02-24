@@ -6,7 +6,7 @@
 * ens all the things!
 * ~~edit post~~
 * ~~moderator mint, suppress~~
-* owner manage mods, arbitrary transfer
+* ~~owner manage mods, arbitrary transfer~~
 * factory board browsing
 * post sort by newest, oldest, controversial (votes/abs(upvotes-down))
 * pagination, load more, suppression level to display
