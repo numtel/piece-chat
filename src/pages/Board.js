@@ -1,4 +1,4 @@
-import {AsyncTemplate, html, userInput} from '/Template.js';
+import {AsyncTemplate, Template, html, userInput} from '/Template.js';
 import {ZERO_ACCOUNT, displayAddress} from '/utils.js';
 import Header from '/components/Header.js';
 import CreatePost from '/components/CreatePost.js';
@@ -13,6 +13,8 @@ export default class Board extends AsyncTemplate {
     this.set('address', address);
     this.set('key', key);
     this.set('data', null);
+    this.set('sort', 'Hot');
+    this.set('sortFun', sorts[this.sort]);
     document.title = 'Board Details';
   }
   async init() {
@@ -56,6 +58,7 @@ export default class Board extends AsyncTemplate {
       ${this.isModerator ? new MintWidget(this) : ''}
       ${this.key ? new Posts(this, this.data[2].parent, [this.data[2]], true):''}
       ${new CreatePost(this.address, this.key)}
+      ${new SortWidget(this)}
       ${new Posts(this, null, this.data[1])}
     `;
   }
@@ -72,4 +75,54 @@ export default class Board extends AsyncTemplate {
     this.set('showForm', false);
     await this.refreshStats();
   }
+}
+
+class SortWidget extends Template {
+  constructor(board) {
+    super();
+    this.set('board', board);
+  }
+  render() {
+    return html`
+      <div class="sort">
+        <span class="label">Sort by:</span>
+        <div class="chooser">
+          <a href="#" title="Choose Sort Mode" onclick="tpl(this).toggleSortMenu(); return false" class="active">${this.board.sort}</a>
+          ${this.showSortMenu ? html`
+            <ul>
+              ${Object.keys(sorts).filter(sort => sort !== this.board.sort).map(sort => html`
+                <li><a href="#" onclick="tpl(this).setSort('${sort}'); return false">${sort}</a></li>
+              `)}
+            </ul>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  toggleSortMenu() {
+    this.set('showSortMenu', !this.showSortMenu);
+  }
+  setSort(newSort) {
+    this.set('showSortMenu', false);
+    this.board.set('sort', newSort);
+    this.board.set('sortFun', sorts[newSort]);
+  }
+}
+
+const sorts =  {
+  'Hot': (a, b) =>
+    a.score > b.score ? -1 :
+      b.score > a.score ? 1 : 0,
+  'Top': (a, b) =>
+    a.votes > b.votes ? -1 :
+      b.votes > a.votes ? 1 : 0,
+  'Newest': (a, b) =>
+    a.timestamp > b.timestamp ? -1 :
+      b.timestamp > a.timestamp ? 1 : 0,
+  'Oldest': (a, b) =>
+    a.timestamp > b.timestamp ? 1 :
+      b.timestamp > a.timestamp ? -1 : 0,
+  'Controversial': (a, b) =>
+    a.controversial > b.controversial ? -1 :
+      b.controversial > a.controversial ? 1 : 0,
 }

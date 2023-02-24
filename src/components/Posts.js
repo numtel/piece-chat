@@ -11,8 +11,7 @@ export default class Posts extends Template {
     this.set('displaySingle', displaySingle);
     this.set('children', {});
     this.set('replies', {});
-    // TODO support other sort methods
-    this.set('data', posts.map(formatMsg).sort(sortByScore));
+    this.set('data', posts.map(formatMsg).sort(board.sortFun));
   }
   render() {
     return html`
@@ -140,14 +139,10 @@ function formatMsg(msgRaw) {
     versionCount: Number(msgRaw.versionCount),
     upvotes,
     downvotes,
+    votes: upvotes - downvotes,
+    controversial: (upvotes + downvotes) / Math.abs(upvotes - downvotes),
     score: calcScore(upvotes, downvotes, age),
     age,
     data: new TextDecoder().decode(gunzip.decompress()),
   };
 }
-
-function sortByScore(a, b) {
-  return a.score > b.score ? -1 :
-    b.score > a.score ? 1 : 0;
-}
-
