@@ -2,10 +2,12 @@ import Router from '/Router.js';
 import Wallet from '/Wallet.js';
 import Loader from '/components/Loader.js';
 import ErrorWindow from '/components/ErrorWindow.js';
+import {ZERO_ACCOUNT} from '/utils.js';
 
 window.app = {
   web3: new Web3(config.rpc),
   wallet: new Wallet,
+  currentAccount: ZERO_ACCOUNT,
   router: new Router({
     element: document.getElementById('app'),
     loader: new Loader,
@@ -17,12 +19,9 @@ window.app = {
 //       { regex: /^\/(0x[a-f0-9]{40})\/(0x[a-f0-9]{40})\/([a-z0-9_]+)$/i,
 //         template: '/pages/Method.js',
 //         constructor: match => [ match[2], match[3], match[1] ] },
-//       { regex: /^\/(0x[a-f0-9]{40})\/(0x[a-f0-9]{40})$/i,
-//         template: '/pages/Details.js',
-//         constructor: match => [ match[2], match[1] ] },
-//       { regex: /^\/(0x[a-f0-9]{40})\/([a-z0-9_]+)$/i,
-//         template: '/pages/Method.js',
-//         constructor: match => [ match[1], match[2] ] },
+      { regex: /^\/(0x[a-f0-9]{40})\/(0x[a-f0-9]{40})$/i,
+        template: '/pages/Board.js',
+        constructor: match => [ match[1], match[2] ] },
       { regex: /^\/(0x[a-f0-9]{40})$/i,
         template: '/pages/Board.js',
         constructor: match => [ match[1] ] },

@@ -37,7 +37,10 @@ export default class Wallet {
         if(error) reject(error);
         else if(accounts.length === 0)
           resolve(['0x0000000000000000000000000000000000000000']);
-        else resolve(accounts);
+        else {
+          app.currentAccount = accounts[0];
+          resolve(accounts);
+        }
       });
     });
   }
