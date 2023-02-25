@@ -66,19 +66,19 @@ exports.moderatorSuppressPosts = async function({
   const browser = await deployContract(accounts[0], 'MsgBoardBrowser');
   const msgBoard = await deployContract(accounts[0], 'MsgBoard', accounts[0], 'Test', 'TEST', 1, ZERO_ADDRESS);
   const listBefore = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 0, 0, 10, accounts[0], false).call();
-  assert.strictEqual(listBefore.length, 0);
+  assert.strictEqual(listBefore.items.length, 0);
   const postAddr = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xbeef')).events.NewMsg.returnValues.key;
   const list0 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 0, 0, 10, accounts[0], false).call();
-  assert.strictEqual(list0.length, 1);
-  assert.strictEqual(list0[0].item.key, postAddr);
+  assert.strictEqual(list0.items.length, 1);
+  assert.strictEqual(list0.items[0].item.key, postAddr);
 
   await msgBoard.sendFrom(accounts[0]).addModerator(accounts[2]);
   await msgBoard.sendFrom(accounts[2]).setMsgStatus([postAddr], [1]);
 
   const list1 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 0, 0, 10, accounts[0], false).call();
-//   assert.strictEqual(list1.length, 0);
+  assert.strictEqual(list1.items.length, 0);
   const list2 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 1, 0, 10, accounts[0], false).call();
-  assert.strictEqual(list2.length, 1);
+  assert.strictEqual(list2.items.length, 1);
 
   await msgBoard.sendFrom(accounts[0]).removeModerator(accounts[2]);
   assert.strictEqual(await throws(async () => await
@@ -86,15 +86,33 @@ exports.moderatorSuppressPosts = async function({
 
   // Post again to test retrieving in reverse
   const postAddr2 = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0x1337')).events.NewMsg.returnValues.key;
-  const list3 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 1, 0, 10, accounts[0], false).call();
-  assert.strictEqual(list3.length, 2);
-  assert.strictEqual(list3[0].item.key, postAddr);
-  assert.strictEqual(list3[1].item.key, postAddr2);
+  const postAddr3 = (await msgBoard.sendFrom(accounts[1]).post(ZERO_ADDRESS, '0xdeafbeef')).events.NewMsg.returnValues.key;
+  const list3 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 1, 0, 2, accounts[0], false).call();
+  assert.strictEqual(list3.items.length, 2);
+  assert.strictEqual(list3.items[0].item.key, postAddr);
+  assert.strictEqual(list3.items[1].item.key, postAddr2);
+  assert.strictEqual(Number(list3.totalCount), 3);
+  assert.strictEqual(Number(list3.lastScanned), 2);
 
-  const list4 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 1, 0, 10, accounts[0], true).call();
-  assert.strictEqual(list4.length, 2);
-  assert.strictEqual(list4[1].item.key, postAddr);
-  assert.strictEqual(list4[0].item.key, postAddr2);
+  const list4 = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 1, 0, 2, accounts[0], true).call();
+  assert.strictEqual(list4.items.length, 2);
+  assert.strictEqual(list4.items[0].item.key, postAddr3);
+  assert.strictEqual(list4.items[1].item.key, postAddr2);
+  assert.strictEqual(Number(list4.totalCount), 3);
+  assert.strictEqual(Number(list4.lastScanned), 1);
+
+  const list4b = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 1, 1, 2, accounts[0], true).call();
+  assert.strictEqual(list4b.items.length, 2);
+  assert.strictEqual(list4b.items[0].item.key, postAddr2);
+  assert.strictEqual(list4b.items[1].item.key, postAddr);
+  assert.strictEqual(Number(list4b.totalCount), 3);
+  assert.strictEqual(Number(list4b.lastScanned), 0);
+
+  const list4c = await browser.methods.fetchChildren(msgBoard.options.address, ZERO_ADDRESS, 0, 1, 2, accounts[0], true).call();
+  assert.strictEqual(list4c.items.length, 1);
+  assert.strictEqual(list4c.items[0].item.key, postAddr2);
+  assert.strictEqual(Number(list4c.totalCount), 3);
+  assert.strictEqual(Number(list4c.lastScanned), 0);
 }
 
 exports.callbackCanStopPostsAndEdits = async function({

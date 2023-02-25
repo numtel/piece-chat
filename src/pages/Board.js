@@ -15,6 +15,8 @@ export default class Board extends AsyncTemplate {
     this.set('data', null);
     this.set('sort', 'Hot');
     this.set('sortFun', sorts[this.sort]);
+    this.set('perPage', 10);
+    this.set('maxSuppressed', 0);
     document.title = 'Board Details';
   }
   async init() {
@@ -28,14 +30,12 @@ export default class Board extends AsyncTemplate {
         this.children(),
         this.key ? this.browser.methods.fetchLatest(this.address, this.key, app.currentAccount).call() : null,
       ]));
-      console.log(this.data);
       this.set('isOwner', this.data[0].owner === app.currentAccount);
       this.set('isModerator', this.data[0].moderators.indexOf(app.currentAccount) !== -1);
     }
   }
   children() {
-    // TODO pagination
-    return this.browser.methods.fetchChildren(this.address, this.key || ZERO_ACCOUNT, 0, 0, 10, app.currentAccount, this.sort === 'Oldest' ? false : true).call();
+    return this.browser.methods.fetchChildren(this.address, this.key || ZERO_ACCOUNT, this.maxSuppressed, 0, this.perPage, app.currentAccount, this.sort === 'Oldest' ? false : true).call();
   }
   async refreshChildren() {
     this.set(['data', 1], await this.children());

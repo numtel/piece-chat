@@ -11,7 +11,9 @@ export default class Posts extends Template {
     this.set('displaySingle', displaySingle);
     this.set('children', {});
     this.set('replies', {});
-    this.set('data', posts.map(formatMsg).sort(board.sortFun));
+    this.set('data', posts.items.map(formatMsg).sort(board.sortFun));
+    this.set('lastScanned', Number(posts.lastScanned));
+    this.set('totalCount', Number(posts.totalCount));
   }
   render() {
     return html`
@@ -19,11 +21,13 @@ export default class Posts extends Template {
         <ul class="children">
           ${this.data.map(child => this.renderMsg(child, !this.displaySingle))}
         </ul>
+        ${(this.board.sort === 'Oldest' ? this.lastScanned < this.totalCount : this.lastScanned > 0) ? html`
+          <div class="more"><a href="#" onclick="tpl(this).loadMore(event.target); return false">Load more...</a></div>
+        ` : ''}
       ` : ''}
     `;
   }
   renderMsg(msg, displayAsChild, displayAsReply) {
-    // TODO allow unvoting
     return html`
       <div class="msg">
         <div class="score">
@@ -56,8 +60,7 @@ export default class Posts extends Template {
     if(target) target.closest('.children').innerHTML = 'Loading...';
     const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
     const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
-    // TODO pagination
-    const data = await browser.methods.fetchChildren(this.board.address, key, 0, 0, 10, app.currentAccount, false).call();
+    const data = await browser.methods.fetchChildren(this.board.address, key, this.board.maxSuppressed, 0, this.board.perPage, app.currentAccount, this.board.sort === 'Oldest' ? false : true).call();
     this.set(['children', key], new Posts(this.board, key, data));
   }
   async vote(key, newVote) {
@@ -87,7 +90,7 @@ export default class Posts extends Template {
     const latest = latestResponse.item;
     const parent = await browser.methods.fetchLatest(this.board.address, latest.parent, app.currentAccount).call();
     if(latest.parent in this.children) {
-      this.children[latest.parent].data.unshift(formatMsg(latest));
+      this.children[latest.parent].data.unshift(formatMsg(latestResponse));
       // Re-render the child list
       this.children[latest.parent].set();
     } else {
@@ -98,6 +101,21 @@ export default class Posts extends Template {
     // This will trigger the component to render
     this.set(['data', index], formatMsg(parent));
     this.set(['replies', latest.parent], false);
+  }
+  async loadMore(target) {
+    if(this.board.sort === 'Oldest' ? this.lastScanned < this.totalCount : this.lastScanned > 0) {
+      if(target) target.closest('div').innerHTML = 'Loading...';
+      const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
+      const browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
+      const data = await browser.methods.fetchChildren(this.board.address, this.parent || ZERO_ACCOUNT, this.board.maxSuppressed, this.lastScanned, this.board.perPage, app.currentAccount, this.board.sort === 'Oldest' ? false : true).call();
+
+      for(let item of data.items) {
+        if(this.data[this.data.length - 1].key === item.item.key) continue;
+        this.data.push(formatMsg(item));
+      }
+      this.set('lastScanned', Number(data.lastScanned));
+      this.set('totalCount', Number(data.totalCount));
+    }
   }
 }
 

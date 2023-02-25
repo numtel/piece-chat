@@ -21,6 +21,12 @@ contract MsgBoardBrowser {
     uint8 vote;
   }
 
+  struct ChildrenResponse {
+    MsgView[] items;
+    uint totalCount;
+    uint lastScanned;
+  }
+
   function fetchLatest(IMsgBoard board, address key, address voter) public view returns(MsgView memory) {
     uint versionCount = board.versionCount(key);
     require(versionCount > 0);
@@ -35,9 +41,9 @@ contract MsgBoardBrowser {
     return MsgView(out, board.votes(voter, key));
   }
 
-  function fetchChildren(IMsgBoard board, address key, uint8 maxStatus, uint startIndex, uint fetchCount, address voter, bool reverseScan) external view returns(MsgView[] memory) {
+  function fetchChildren(IMsgBoard board, address key, uint8 maxStatus, uint startIndex, uint fetchCount, address voter, bool reverseScan) external view returns(ChildrenResponse memory) {
     uint childCount = board.childCount(key);
-    if(childCount == 0) return new MsgView[](0);
+    if(childCount == 0) return ChildrenResponse(new MsgView[](0), 0, 0);
     require(startIndex < childCount);
     if(startIndex + fetchCount >= childCount) {
       fetchCount = childCount - startIndex;
@@ -45,13 +51,15 @@ contract MsgBoardBrowser {
     MsgView[] memory selection = new MsgView[](fetchCount);
     uint activeCount;
     uint i;
-    uint childIndex;
-    if(reverseScan) childIndex = childCount - 1;
+    uint childIndex = startIndex;
+    if(reverseScan && startIndex == 0) {
+      childIndex = childCount - 1;
+    }
     while(activeCount < fetchCount && childIndex < childCount) {
       selection[i] = fetchLatest(board, board.msgChildren(key, childIndex), voter);
       if(selection[i].item.status <= maxStatus) activeCount++;
       if(reverseScan) {
-        if(childIndex == 0) break;
+        if(childIndex == 0 || activeCount == fetchCount) break;
         childIndex--;
       } else {
         childIndex++;
@@ -66,7 +74,7 @@ contract MsgBoardBrowser {
         out[j++] = selection[i];
       }
     }
-    return out;
+    return ChildrenResponse(out, childCount, childIndex);
   }
 }
 
