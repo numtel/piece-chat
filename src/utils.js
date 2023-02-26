@@ -1,3 +1,4 @@
+import {html, LINK_HANDLER} from '/Template.js';
 
 export function explorer(address) {
   return window.config.blockExplorer + '/address/' + address;
@@ -12,7 +13,10 @@ export function isFunSig(value) {
 }
 
 export function displayAddress(address) {
-  return address.slice(0, 6) + '...' + address.slice(-4);
+  // TODO show more than just address
+  return html`
+    <a href="/account/${address}" $${LINK_HANDLER}>${address.slice(0, 6) + '...' + address.slice(-4)}</a>
+   `;
 }
 
 export function remaining(seconds, onlyFirst) {

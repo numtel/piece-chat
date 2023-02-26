@@ -144,7 +144,7 @@ function htmlEscape(str) {
 }
 
 // Helper for event handlers
-const LINK_HANDLER = 'onclick="return tpl(this).route(this)"';
+export const LINK_HANDLER = 'onclick="return tpl(this).route(this)"';
 window.tpl = function(el) {
   return el.closest('tpl').tpl;
 }
@@ -156,6 +156,7 @@ export function userInput(text) {
     const firstSpace = parts[i].indexOf(' ');
     const url = parts[i].slice(0, firstSpace !== -1 ? firstSpace : parts[i].length);
     const text = parts[i].slice(url.length);
+    // TODO this only works for internal links?
     parts[i] = html`<a $${LINK_HANDLER} href="https://${url}">https://${url}</a>${nl2br(text)}`;
   }
   return parts;

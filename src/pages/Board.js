@@ -21,7 +21,7 @@ export default class Board extends AsyncTemplate {
   }
   async init() {
     if(!this.data) {
-      this.set('data', true); // Default race condition
+      this.data = true; // Default race condition
       const browserABI = await (await fetch('/MsgBoardBrowser.abi')).json();
       this.browser = new app.web3.eth.Contract(browserABI, config.contracts.MsgBoardBrowser.address);
 
@@ -40,8 +40,8 @@ export default class Board extends AsyncTemplate {
   async refreshChildren() {
     this.set(['data', 1], await this.children());
   }
-  stats() {
-    return this.browser.methods.stats(this.address, app.currentAccount).call();
+  async stats() {
+    return (await this.browser.methods.stats([this.address], app.currentAccount).call())[0];
   }
   async refreshStats() {
     this.set(['data', 0], await this.stats());
@@ -49,24 +49,30 @@ export default class Board extends AsyncTemplate {
   async render() {
     return html`
       ${new Header}
-      <h2><a href="/${this.address}" $${this.link}>${userInput(this.data[0].name)} (${userInput(this.data[0].symbol)})</a></h2>
-      <p>
-        Owner: ${displayAddress(this.data[0].owner)}, moderators:
-        ${this.data[0].moderators.length === 0 ? 'none' : this.data[0].moderators.map(mod => html`
-          <span class="moderator">
-            ${displayAddress(mod)}
-            ${this.isOwner ? html`<button onclick="tpl(this).removeModerator('${mod}')">Remove</button>` : ''}
-          </span>
-        `)}
-      </p>
-      <p>My Balance: ${this.data[0].balance}</p>
-      ${this.isOwner ? new AddModeratorWidget(this) : ''}
-      ${this.isOwner ? new ArbitraryTransferWidget(this) : ''}
-      ${this.isModerator ? new MintWidget(this) : ''}
-      ${this.key ? new Posts(this, this.data[2].parent, [this.data[2]], true):''}
-      ${new CreatePost(this.address, this.key)}
-      ${new SortWidget(this)}
-      ${new Posts(this, null, this.data[1])}
+      ${this.data && this.data !== true ? html`
+        <header class="board">
+          <h2><a href="/${this.address}" $${this.link}>${userInput(this.data[0].name)} (${userInput(this.data[0].symbol)})</a></h2>
+          <p class="authorities">
+            Owner: ${displayAddress(this.data[0].owner)}, moderators:
+            ${this.data[0].moderators.length === 0 ? 'none' : this.data[0].moderators.map(mod => html`
+              <span class="moderator">
+                ${displayAddress(mod)}
+                ${this.isOwner ? html`<button onclick="tpl(this).removeModerator('${mod}')">Remove</button>` : ''}
+              </span>
+            `)}
+          </p>
+          <p class="balance">My Balance: ${this.data[0].balance}</p>
+          <div class="mod">
+            ${this.isOwner ? new AddModeratorWidget(this) : ''}
+            ${this.isOwner ? new ArbitraryTransferWidget(this) : ''}
+            ${this.isModerator ? new MintWidget(this) : ''}
+          </div>
+        </header>
+        ${this.key ? new Posts(this, this.data[2].item.parent, this.data[2], true):''}
+        ${new CreatePost(this.address, this.key)}
+        ${new SortWidget(this)}
+        ${new Posts(this, null, this.data[1])}
+      ` : ''}
     `;
   }
   async removeModerator(mod) {

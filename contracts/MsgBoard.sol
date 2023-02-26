@@ -13,6 +13,8 @@ contract MsgBoard is KarmaERC20, Ownable {
   string public name;
   string public symbol;
   address public postCallback;
+  uint public msgCount;
+  uint public created;
 
   struct Msg {
     address author;
@@ -47,6 +49,7 @@ contract MsgBoard is KarmaERC20, Ownable {
   constructor(address owner, string memory _name, string memory _symbol, uint initialMint, address _postCallback) {
     name = _name;
     symbol = _symbol;
+    created = block.timestamp;
     require(_postCallback == address(0) || isContract(_postCallback));
     postCallback = _postCallback;
     moderators.insert(owner);
@@ -104,6 +107,7 @@ contract MsgBoard is KarmaERC20, Ownable {
     msgs[key][0].upvotes++;
     votes[msg.sender][key] = 1;
 
+    msgCount++;
     emit NewMsg(key);
   }
 

@@ -1,19 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "./IMsgBoard.sol";
+
 contract MsgBoardBrowser {
-  function stats(IMsgBoard board, address account) public view returns(
-    string memory name,
-    string memory symbol,
-    address owner,
-    address[] memory moderators,
-    int256 balance
-  ) {
-    name = board.name();
-    symbol = board.symbol();
-    owner = board.owner();
-    moderators = board.listModerators();
-    balance = board._balanceOf(account);
+  struct BoardStats {
+    string name;
+    string symbol;
+    address owner;
+    uint created;
+    uint msgCount;
+    address[] moderators;
+    int256 balance;
+  }
+  function stats(IMsgBoard[] memory board, address account) public view returns(BoardStats[] memory out) {
+    out = new BoardStats[](board.length);
+    for(uint i; i<board.length; i++){
+      out[i] = BoardStats({
+        name: board[i].name(),
+        symbol: board[i].symbol(),
+        owner: board[i].owner(),
+        created: board[i].created(),
+        msgCount: board[i].msgCount(),
+        moderators: board[i].listModerators(),
+        balance: board[i]._balanceOf(account)
+      });
+    }
   }
 
   struct MsgView {
@@ -76,31 +88,4 @@ contract MsgBoardBrowser {
     }
     return ChildrenResponse(out, childCount, childIndex);
   }
-}
-
-interface IMsgBoard {
-  function name() external view returns(string memory);
-  function symbol() external view returns(string memory);
-  function owner() external view returns(address);
-  function listModerators() external view returns(address[] memory);
-  function _balanceOf(address account) external view returns(int256);
-
-  struct Msg {
-    address author;
-    address parent;
-    address key;
-    uint timestamp;
-    uint childIndex;
-    uint childCount; // Filled when viewing from msgChildren[].length
-    uint versionCount; // Filled when viewing from msgChildren[].length
-    uint upvotes;
-    uint downvotes;
-    uint8 status; // 0 = active, greater number = more suppression
-    bytes data;
-  }
-  function getMsg(address key, uint version) external view returns(Msg memory);
-  function msgChildren(address key, uint index) external view returns(address);
-  function votes(address voter, address key) external view returns(uint8);
-  function childCount(address key) external view returns(uint);
-  function versionCount(address key) external view returns(uint);
 }

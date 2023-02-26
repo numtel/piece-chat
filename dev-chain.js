@@ -22,6 +22,9 @@ const web3 = new Web3(ganacheServer.provider);
 const contracts = {
   MsgBoardFactory: {},
   MsgBoardBrowser: {},
+  MsgBoardDirectory: { constructorArgs: [
+    () => contracts.MsgBoardFactory.instance.options.address,
+  ]},
 };
 
 let accounts = [];

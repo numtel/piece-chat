@@ -11,7 +11,9 @@ export default class Posts extends Template {
     this.set('displaySingle', displaySingle);
     this.set('children', {});
     this.set('replies', {});
-    this.set('data', posts.items.map(formatMsg).sort(board.sortFun));
+    this.set('data', this.displaySingle
+      ? [formatMsg(posts)]
+      : posts.items.map(formatMsg).sort(board.sortFun));
     this.set('lastScanned', Number(posts.lastScanned));
     this.set('totalCount', Number(posts.totalCount));
   }
@@ -36,7 +38,7 @@ export default class Posts extends Template {
         </div>
         <div class="body">
           <div class="metadata">
-            <span class="author"><a href="/account/${msg.author}">${displayAddress(msg.author)}</a></span>
+            <span class="author">${displayAddress(msg.author)}</span>
             <span class="score">${msg.upvotes - msg.downvotes} ${Math.abs(msg.upvotes - msg.downvotes)===1 ? 'point' : 'points'}<!-- Age: ${msg.age}, Score: ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes} --></span>
             <span class="time"><time title="${msg.timestamp.toLocaleString()}" datetime="${msg.timestamp.toJSON()}">${msg.ago} ago</time> ${msg.versionCount > 1 ? '(Edited)' : ''}</time></span>
           </div>
