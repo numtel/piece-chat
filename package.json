@@ -1,7 +1,7 @@
 {
-  "name": "web3-store",
+  "name": "piece-chat",
   "version": "1.0.0",
-  "description": "Simple Web3 Store",
+  "description": "Threaded discussion board",
   "scripts": {
     "dev": "lite-server",
     "dev-chain": "node dev-chain.js",
