@@ -166,6 +166,10 @@ contract MsgBoard is KarmaERC20, Ownable {
     return msgChildren[key].length;
   }
 
+  function authorCount(address author) public view returns(uint) {
+    return msgsByAuthor[author].length;
+  }
+
   // Moderators can set a non-zero status value in order to set the level of
   //  suppression a post deserves
   function setMsgStatus(address[] memory key, uint8[] memory status) external onlyModerator {

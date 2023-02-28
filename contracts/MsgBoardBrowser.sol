@@ -88,4 +88,40 @@ contract MsgBoardBrowser {
     }
     return ChildrenResponse(out, childCount, childIndex);
   }
+
+  function fetchByAuthor(IMsgBoard board, address author, uint8 maxStatus, uint startIndex, uint fetchCount, address voter, bool reverseScan) external view returns(ChildrenResponse memory) {
+    uint childCount = board.authorCount(author);
+    if(childCount == 0) return ChildrenResponse(new MsgView[](0), 0, 0);
+    require(startIndex < childCount);
+    if(startIndex + fetchCount >= childCount) {
+      fetchCount = childCount - startIndex;
+    }
+    MsgView[] memory selection = new MsgView[](fetchCount);
+    uint activeCount;
+    uint i;
+    uint childIndex = startIndex;
+    if(reverseScan && startIndex == 0) {
+      childIndex = childCount - 1;
+    }
+    while(activeCount < fetchCount && childIndex < childCount) {
+      selection[i] = fetchLatest(board, board.msgsByAuthor(author, childIndex), voter);
+      if(selection[i].item.status <= maxStatus) activeCount++;
+      if(reverseScan) {
+        if(childIndex == 0 || activeCount == fetchCount) break;
+        childIndex--;
+      } else {
+        childIndex++;
+      }
+      i++;
+    }
+
+    MsgView[] memory out = new MsgView[](activeCount);
+    uint j;
+    for(i=0; i<fetchCount; i++) {
+      if(selection[i].item.status <= maxStatus) {
+        out[j++] = selection[i];
+      }
+    }
+    return ChildrenResponse(out, childCount, childIndex);
+  }
 }

@@ -26,7 +26,9 @@ interface IMsgBoard {
   }
   function getMsg(address key, uint version) external view returns(Msg memory);
   function msgChildren(address key, uint index) external view returns(address);
+  function msgsByAuthor(address author, uint index) external view returns(address);
   function votes(address voter, address key) external view returns(uint8);
   function childCount(address key) external view returns(uint);
+  function authorCount(address author) external view returns(uint);
   function versionCount(address key) external view returns(uint);
 }

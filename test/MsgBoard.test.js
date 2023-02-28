@@ -113,6 +113,9 @@ exports.moderatorSuppressPosts = async function({
   assert.strictEqual(list4c.items[0].item.key, postAddr2);
   assert.strictEqual(Number(list4c.totalCount), 3);
   assert.strictEqual(Number(list4c.lastScanned), 0);
+
+  const listByAuthor = await browser.methods.fetchByAuthor(msgBoard.options.address, accounts[1], 20, 0, 10, accounts[0], true).call();
+  assert.strictEqual(listByAuthor.items.length, 3);
 }
 
 exports.callbackCanStopPostsAndEdits = async function({
