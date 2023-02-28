@@ -7,12 +7,12 @@ import BoardSearch from '/components/BoardSearch.js';
 export default class Home extends Template {
   constructor() {
     super();
-    document.title = 'Message Board';
+    document.title = 'piece.chat';
   }
   render() {
     return html`
       ${new Header}
-      <header>
+      <header class="board">
       ${new NewBoardWidget}
       </header>
       ${new BoardSearch}

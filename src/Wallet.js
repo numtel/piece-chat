@@ -111,7 +111,9 @@ export default class Wallet {
       this.init();
     });
 
-//     app.web3 = new Web3(provider);
+    // XXX Comment out the following line when developing on localhost ganache
+    //  for transactions to go through without any metamask prompts
+    app.web3 = new Web3(provider);
     this.connected = true;
 
     await this.init();

@@ -2,6 +2,7 @@
 export class Template {
   constructor() {
     this.element = document.createElement('tpl');
+    this.element.classList.add(this.constructor.name);
     this.element.tpl = this;
     this.timeout = null;
     this.renderMethod = 'render';
@@ -112,7 +113,7 @@ export function html(literalSections, ...substs) {
           id += char.toString(16);
         }
         els[id] = subst;
-        subst = `<div id="${id}"></div>`;
+        subst = `<div class="templet" id="${id}"></div>`;
       } else if(subst instanceof HTMLTemplate) {
         Object.assign(els, subst.els);
         subst = subst.result;

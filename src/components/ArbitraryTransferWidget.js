@@ -32,6 +32,7 @@ export default class ArbitraryTransferWidget extends Template {
             </div>
             <div class="submit">
               <button type="submit">Transfer</button>
+              <button onclick="tpl(this).set('showForm', false); return false">Cancel</button>
             </div>
           </fieldset>
         </form>

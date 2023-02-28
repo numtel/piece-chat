@@ -17,7 +17,6 @@ export default class Board extends AsyncTemplate {
     this.set('sortFun', sorts[this.sort]);
     this.set('perPage', 10);
     this.set('maxSuppressed', 0);
-    document.title = 'Board Details';
   }
   async init() {
     if(!this.data) {
@@ -30,6 +29,7 @@ export default class Board extends AsyncTemplate {
         this.children(),
         this.key ? this.browser.methods.fetchLatest(this.address, this.key, app.currentAccount).call() : null,
       ]));
+      document.title = `${this.data[0].name} (${this.data[0].symbol})`;
       this.set('isOwner', this.data[0].owner === app.currentAccount);
       this.set('isModerator', this.data[0].moderators.indexOf(app.currentAccount) !== -1);
     }
@@ -52,15 +52,15 @@ export default class Board extends AsyncTemplate {
       ${this.data && this.data !== true ? html`
         <header class="board">
           <h2><a href="/${this.address}" $${this.link}>${userInput(this.data[0].name)} (${userInput(this.data[0].symbol)})</a></h2>
-          <p class="authorities">
+          <div class="authorities">
             Owner: ${displayAddress(this.data[0].owner)}, moderators:
             ${this.data[0].moderators.length === 0 ? 'none' : this.data[0].moderators.map(mod => html`
               <span class="moderator">
                 ${displayAddress(mod)}
-                ${this.isOwner ? html`<button onclick="tpl(this).removeModerator('${mod}')">Remove</button>` : ''}
+                ${this.isOwner ? html`<button title="Remove Moderator" onclick="tpl(this).removeModerator('${mod}')">Remove</button>` : ''}
               </span>
             `)}
-          </p>
+          </div>
           <p class="balance">My Balance: ${this.data[0].balance}</p>
           <div class="mod">
             ${this.isOwner ? new AddModeratorWidget(this) : ''}

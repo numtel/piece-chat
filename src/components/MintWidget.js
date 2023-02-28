@@ -26,6 +26,7 @@ export default class MintWidget extends Template {
             </div>
             <div class="submit">
               <button type="submit">Mint</button>
+              <button onclick="tpl(this).set('showForm', false); return false">Cancel</button>
             </div>
           </fieldset>
         </form>

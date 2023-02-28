@@ -42,7 +42,7 @@ MIT
 ## TODO
 
 * identity interface - coinpassport, avatars, custom text
-* ens all the things!
+* ~~ens all the things!~~
 * ~~edit post~~
 * ~~moderator mint, suppress~~
 * ~~owner manage mods, arbitrary transfer~~

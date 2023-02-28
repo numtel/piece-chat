@@ -96,6 +96,7 @@ contract MsgBoardDirectory is Ownable {
     }
   }
 
+  // TODO this function must be in its own contract so it can be upgraded
   function query(string memory qStr) external view returns(address[] memory out) {
     bytes memory q = bytes(qStr);
     Tree storage pos = root;

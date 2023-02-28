@@ -1,4 +1,4 @@
-import {html, LINK_HANDLER} from '/Template.js';
+import Address from '/components/Address.js';
 
 export function explorer(address) {
   return window.config.blockExplorer + '/address/' + address;
@@ -12,12 +12,10 @@ export function isFunSig(value) {
   return typeof value === 'string' && value.match(/^0x[a-f0-9]{8}$/i);
 }
 
-export function displayAddress(address) {
-  // TODO show more than just address
-  return html`
-    <a href="/account/${address}" $${LINK_HANDLER}>${address.slice(0, 6) + '...' + address.slice(-4)}</a>
-   `;
+export function displayAddress(address, noLink) {
+  return new Address(address, noLink);
 }
+
 
 export function remaining(seconds, onlyFirst) {
   const units = [
