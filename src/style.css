@@ -6,10 +6,13 @@ body {padding:0; margin:0;background:#fff;min-height:100vh;font-family:sans-seri
 }
 h1, h2, .cornerBanner, button, .loader, legend { font-family:BebasNeue; }
 h1 { margin:4px 0; }
-h1>a { padding-left:3rem; font-size:2rem; background:url(/logo.png) no-repeat top left; background-size:contain; text-decoration:none; color:#000;}
+h1>a { padding-left:3rem; font-size:2rem; background:url(/logo.png) no-repeat 0.5rem 0; background-size:contain; text-decoration:none; color:#000;}
 h2>a { color:#000; text-decoration:none; font-size: 1.5rem;}
-a {color:#44032e;}
-a.cornerBanner { display:block; padding: 5px; background:linear-gradient(#8054ec, #bd7e96); text-decoration:none; text-align:center; font-weight:bold; color:#fff;text-shadow:1px 1px 0px #0006;}
+a {color:#064175;}
+a.cornerBanner { display:block; padding: 5px; background:linear-gradient(#abd5fa, #6ab9ff);background-size: 100% 200%; text-decoration:none; text-align:center; font-weight:bold; color:#fff;text-shadow:1px 1px 0px #0006; animation: bannerbg 3s ease infinite alternate;}
+@keyframes bannerbg {
+  from {background-position:0 0;} to{background-position:0 100%;}
+}
 
 .templet { display:inline; }
 tpl.Address { display:inline-block; }

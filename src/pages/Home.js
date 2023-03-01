@@ -7,7 +7,7 @@ import BoardSearch from '/components/BoardSearch.js';
 export default class Home extends Template {
   constructor() {
     super();
-    document.title = 'piece.chat';
+    document.title = 'glasshalf.chat';
   }
   render() {
     return html`
