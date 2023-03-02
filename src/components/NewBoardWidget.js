@@ -11,6 +11,7 @@ export default class NewBoardWidget extends Template {
         <form onsubmit="tpl(this).submit(); return false">
           <fieldset>
             <legend>Create a new message board</legend>
+            <p>Each board is also an ERC20 token that is used to vote on posts. The name and symbol cannot be changed.</p>
             <div>
               <label>
                 <span>Name</span>
@@ -23,12 +24,14 @@ export default class NewBoardWidget extends Template {
                 <input name="symbol">
               </label>
             </div>
+            <p>Each up/down vote costs the voter one token. The specified mint amount will be your balance. When you upvote a post, they get your token, enabling them to vote on another post. When you downvote, they lose a token, even into negative balances. As board owner, you can decide how to distribute voting power on your board with arbitrary transfers between accounts.</p>
             <div>
               <label>
                 <span>Initial Mint</span>
                 <input name="initialMint" type="number" min="0" value="0">
               </label>
             </div>
+            <p>You can mint more tokens and add more moderators after creation.</p>
             <div class="submit">
               <button type="submit">Deploy</button>
               <button onclick="tpl(this).set('showForm', false); return false">Cancel</button>

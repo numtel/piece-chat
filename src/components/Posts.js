@@ -38,6 +38,7 @@ export default class Posts extends Template {
         </div>
         <div class="body">
           <div class="metadata">
+            <a class="minimize" href="#" onclick="event.target.closest('.msg').classList.toggle('minimize'); return false">Toggle Minimized</a>
             <span class="author">${displayAddress(msg.author)}</span>
             <span class="score">${msg.upvotes - msg.downvotes} ${Math.abs(msg.upvotes - msg.downvotes)===1 ? 'point' : 'points'}<!-- Age: ${msg.age}, Score: ${msg.score}, Up: ${msg.upvotes} Down: ${msg.downvotes} --></span>
             <span class="time"><time title="${msg.timestamp.toLocaleString()}" datetime="${msg.timestamp.toJSON()}">${msg.ago} ago</time> ${msg.versionCount > 1 ? '(Edited)' : ''}</time></span>

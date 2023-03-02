@@ -25,6 +25,9 @@ window.app = {
       { regex: /^\/(0x[a-f0-9]{40})$/i,
         template: '/pages/Board.js',
         constructor: match => [ match[1] ] },
+      { regex: /^\/account\/(0x[a-f0-9]{40})$/i,
+        template: '/pages/Account.js',
+        constructor: match => [ match[1] ] },
       { regex: /^\/deploy/, // catch all others
         template: '/components/Deploy.js' },
       { regex: /^\//, // catch all others
