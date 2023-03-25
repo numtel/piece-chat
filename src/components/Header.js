@@ -9,9 +9,9 @@ export default class Header extends Template {
   }
   render() {
     return html`
-      <a class="cornerBanner" href="https://optimism.io" onclick="window.open(event.target.href); return false">Social Network for Optimism</a>
+      <a class="cornerBanner" href="https://faucet.polygon.technology/" onclick="window.open(event.target.href); return false">Get Free Mumbai Testnet Gas!</a>
       <header class="top">
-      <h1><a href="/" $${this.link}>glasshalf.chat</a></h1>
+      <h1><a href="/" $${this.link}>nonphysical.systems</a><span class="badge">Beta</span></h1>
       <a href="javascript:void 0" onclick="tpl(this).toggleWallet()" class="wallet">${app.wallet.connected ? html`
         <span class="address">${displayAddress(this.account || app.currentAccount || ZERO_ACCOUNT, true)}</span>
         <span class="hover">Disconnect</span>

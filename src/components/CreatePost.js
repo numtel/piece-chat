@@ -22,6 +22,8 @@ export default class CreatePost extends Template {
   }
   async submit() {
     const form = this.element.querySelector('form');
+    const submit = form.querySelector('button[type="submit"]');
+    submit.classList.add('loading');
     const boardABI = await (await fetch('/MsgBoard.abi')).json();
     const board = new app.web3.eth.Contract(boardABI, this.boardAddr);
     const gzip = new Zlib.Gzip(new TextEncoder().encode(form.text.value));
@@ -50,6 +52,7 @@ export default class CreatePost extends Template {
     } else {
       await app.router.goto('/' + this.boardAddr + (this.parent ? '/' + this.parent : ''));
     }
+    submit.classList.remove('loading');
     
   }
 }

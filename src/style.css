@@ -1,16 +1,18 @@
-@font-face {font-family:"BebasNeue"; src:url(/BebasNeue-Regular.ttf);}
+@font-face {font-family:"Asap"; src:url(/EduNSWACTFoundation-Regular.ttf);}
+@font-face {font-family:"IndieFlower"; src:url(/IndieFlower-Regular.ttf);}
 body {padding:0; margin:0;background:#fff;min-height:100vh;font-family:sans-serif; }
-.sep {background: linear-gradient(90deg, #acd6fb, #08f);background-size: 200% 200%; animation: bodybg 3s ease infinite alternate; height:4px;}
+.sep {background: linear-gradient(90deg, #7b3fe4, #08f);background-size: 200% 200%; animation: bodybg 3s ease infinite alternate; height:4px;}
 @keyframes bodybg {
   from {background-position:0 0;} to{background-position:100% 0;}
 }
-h1, h2, .cornerBanner, button, .loader, legend { font-family:BebasNeue; }
+h1 { font-family:IndieFlower; }
+h2, .cornerBanner, button, .loader, legend, .badge { font-family:Asap; }
 h1 { margin:4px 0; }
 h1>a { padding-left:3rem; font-size:2rem; background:url(/logo.png) no-repeat 0.5rem 0; background-size:contain; text-decoration:none; color:#000;}
 h2 {margin: 0; }
 h2>a { color:#000; text-decoration:none; font-size: 1.5rem;}
-a {color:#064175;}
-a.cornerBanner { display:block; padding: 5px; background:linear-gradient(#abd5fa, #6ab9ff);background-size: 100% 200%; text-decoration:none; text-align:center; font-weight:bold; color:#fff;text-shadow:1px 1px 0px #0006; animation: bannerbg 3s ease infinite alternate;}
+a {color:#2f1a52;}
+a.cornerBanner { display:block; padding: 5px; background:linear-gradient(#9A60FF, #6A23E7);background-size: 100% 200%; text-decoration:none; text-align:center; font-weight:bold; color:#fff;text-shadow:1px 1px 0px #0006; animation: bannerbg 3s ease infinite alternate;}
 @keyframes bannerbg {
   from {background-position:0 0;} to{background-position:0 100%;}
 }
@@ -23,9 +25,15 @@ tpl.Address { display:inline-block; }
 @keyframes loader {
   from{font-size:1.2rem; transform:rotate(0deg); text-shadow:8px -35px -10px #0004;} to{font-size:1.7rem; transform:rotate(90deg); text-shadow:18px 15px 10px #0007;}
 }
+.loading {position:relative;}
+.loading:after {animation: btnloader 2s linear infinite; position: absolute; right: -1rem; content: "↻"; font-size: 1rem; text-shadow: 3px 2px 1px #000c; font-size: 1.5rem; background: #000c; width: 1.5rem; height: 1.5rem; line-height: 1.5rem; border-radius: 0.75rem;}
+@keyframes btnloader {
+  from{transform:rotate(0deg);} to{transform:rotate(359deg);}
+}
 
 header {}
-header.top {display:flex;justify-content:space-between; align-items:center;padding-right:10px;}
+header.top {background:aqua;display:flex;justify-content:space-between; align-items:center;padding-right:10px;}
+header.top .badge {background:#65ff4f; padding:2px; border-radius:5px;box-shadow:1px 1px 1px #0007; font-size:0.75rem; line-height:1.5rem;vertical-align:top; text-transform:uppercase;}
 header.top .wallet {}
 header.top .wallet .hover,
 header.top .wallet:hover .address {display:none;}
@@ -89,7 +97,7 @@ form {background:#0001;margin:20px 0; padding:20px;}
 fieldset {border:0;}
 fieldset>div>label>span {display:block; margin-top:10px; font-size:0.9rem;}
 legend {font-weight:bold; font-size:1.1rem; border-bottom:1px dotted #000c; padding:0 0 4px; }
-button {cursor:pointer; border:0; background:#0007; margin:2px; padding:7px 15px; border-radius:10px; font-size:1.0rem;color:#eee;}
+button {cursor:pointer; border:0; background:#0007; margin:2px; padding:7px 15px; border-radius:10px; font-size:1.0rem;color:#fff;}
 form p.help { font-size: 0.8rem; margin:5px 0; }
 
 input {margin-bottom:15px; padding: 7px; background:#0001; border:1px solid #0004;}

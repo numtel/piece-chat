@@ -45,6 +45,8 @@ export default class NewBoardWidget extends Template {
   }
   async submit() {
     const form = this.element.querySelector('form');
+    const submit = form.querySelector('button[type="submit"]');
+    submit.classList.add('loading');
     const factoryABI = await (await fetch('/MsgBoardFactory.abi')).json();
     const factory = new app.web3.eth.Contract(factoryABI, config.contracts.MsgBoardFactory.address);
     let response;
@@ -52,6 +54,7 @@ export default class NewBoardWidget extends Template {
       response = await app.wallet.send(factory.methods.deployNew(form.name.value, form.symbol.value, form.initialMint.value, ZERO_ACCOUNT, config.contracts.MsgBoardDirectory.address));
     } catch(error) {
       alert(error);
+      submit.classList.remove('loading');
     }
     await app.router.goto('/' + response.events.NewBoard.returnValues.addr);
 

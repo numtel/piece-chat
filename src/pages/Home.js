@@ -7,7 +7,7 @@ import BoardSearch from '/components/BoardSearch.js';
 export default class Home extends Template {
   constructor() {
     super();
-    document.title = 'glasshalf.chat';
+    document.title = 'nonphysical.systems';
   }
   render() {
     return html`
